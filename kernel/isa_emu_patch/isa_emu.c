@@ -47,6 +47,7 @@ enum op_kind {
 	K_NONE, K_GF2P8MUL, K_GF2P8AFF, K_GF2P8AFFINV, K_VNNI_BUSD, K_VNNI_WSSD, K_VNNI8,
 	K_IFMA_L, K_IFMA_H, K_VAES, K_CLMUL,
 	K_SHA1NEXTE, K_SHA1MSG1, K_SHA1MSG2, K_SHA256RNDS2, K_SHA256MSG1, K_SHA256MSG2, K_SHA1RNDS4,
+	K_ADCX, K_ADOX,
 };
 
 struct op {
@@ -56,6 +57,12 @@ struct op {
 	int dst, src1, rm;  /* vector register numbers; rm < 0 means memory */
 	int sat, a_signed, b_signed, aes_op;
 	u8 imm;
+};
+
+struct adx_op {
+	enum op_kind kind; /* K_ADCX updates CF; K_ADOX updates OF */
+	int bits;          /* 32 or 64 */
+	int dst, rm;       /* general register numbers; rm < 0 means memory */
 };
 
 /* Classify a decoded instruction; returns false if not one we emulate. */
@@ -168,6 +175,48 @@ static bool classify(struct insn *insn, struct op *o)
 		if (pp == 1 && opc == 0xcf) { o->kind = K_GF2P8AFFINV; return true; }
 	}
 	return false;
+}
+
+/*
+ * ADX uses legacy 0F 38 F6 encodings: 66 selects ADCX and F3 selects ADOX.
+ * Unlike the SIMD emulation below, this path only needs the integer register
+ * frame and must work even when XSAVE is unavailable.
+ */
+static bool classify_adx(struct insn *insn, struct adx_op *o)
+{
+	u8 modrm;
+	bool p66 = false, pf3 = false;
+	int i, reg, rm;
+
+	if (insn->vex_prefix.nbytes || insn->opcode.nbytes != 3 ||
+	    insn->opcode.bytes[0] != 0x0f || insn->opcode.bytes[1] != 0x38 ||
+	    insn->opcode.bytes[2] != 0xf6)
+		return false;
+
+	for (i = 0; i < insn->prefixes.nbytes; i++) {
+		if (insn->prefixes.bytes[i] == 0x66)
+			p66 = true;
+		else if (insn->prefixes.bytes[i] == 0xf3)
+			pf3 = true;
+	}
+	/* The mandatory prefixes select different instructions. */
+	if (p66 == pf3)
+		return false;
+
+	modrm = insn->modrm.value;
+	reg = X86_MODRM_REG(modrm);
+	rm = X86_MODRM_RM(modrm);
+	if (insn->rex_prefix.nbytes) {
+		if (X86_REX_R(insn->rex_prefix.value))
+			reg += 8;
+		if (X86_REX_B(insn->rex_prefix.value))
+			rm += 8;
+	}
+	o->kind = p66 ? K_ADCX : K_ADOX;
+	o->bits = insn->rex_prefix.nbytes && X86_REX_W(insn->rex_prefix.value) ? 64 : 32;
+	o->dst = reg;
+	o->rm = X86_MODRM_MOD(modrm) == 3 ? rm : -1;
+	return true;
 }
 
 /* ---- register file access, on the saved xsave image ---- */
@@ -315,6 +364,102 @@ out:
 		fput(f);
 }
 
+static unsigned long *adx_gpr(struct pt_regs *regs, int n)
+{
+	switch (n) {
+	case 0: return &regs->ax;
+	case 1: return &regs->cx;
+	case 2: return &regs->dx;
+	case 3: return &regs->bx;
+	case 4: return &regs->sp;
+	case 5: return &regs->bp;
+	case 6: return &regs->si;
+	case 7: return &regs->di;
+	case 8: return &regs->r8;
+	case 9: return &regs->r9;
+	case 10: return &regs->r10;
+	case 11: return &regs->r11;
+	case 12: return &regs->r12;
+	case 13: return &regs->r13;
+	case 14: return &regs->r14;
+	case 15: return &regs->r15;
+	default: return NULL;
+	}
+}
+
+/* Emulate ADCX/ADOX without disturbing the flags each instruction preserves. */
+static bool emulate_adx(struct insn *insn, struct pt_regs *regs, struct adx_op *o)
+{
+	const unsigned long cf_mask = 1UL << 0;
+	const unsigned long of_mask = 1UL << 11;
+	unsigned long *dstp = adx_gpr(regs, o->dst);
+	unsigned long *srcp;
+	void __user *addr;
+	u64 dst, src = 0, result;
+	u8 carry_in, carry_out;
+	int bytes = o->bits / 8;
+
+	if (!dstp)
+		return false;
+	if (o->rm >= 0) {
+		srcp = adx_gpr(regs, o->rm);
+		if (!srcp)
+			return false;
+		src = *srcp;
+	} else {
+		addr = insn_get_addr_ref(insn, regs);
+		if (addr == (void __user *)-1L)
+			return false;
+		if (copy_from_user(&src, addr, bytes)) {
+			force_sig_fault(SIGSEGV, SEGV_MAPERR, addr);
+			return true;
+		}
+	}
+	if (o->bits == 32)
+		src = (u32)src;
+	dst = *dstp;
+	if (o->bits == 32)
+		dst = (u32)dst;
+
+	if (o->kind == K_ADCX)
+		carry_in = !!(regs->flags & cf_mask);
+	else
+		carry_in = !!(regs->flags & of_mask);
+
+	if (o->bits == 32) {
+		u64 sum = (u32)dst + (u64)(u32)src + carry_in;
+
+		result = (u32)sum;
+		carry_out = sum >> 32;
+	} else {
+		u64 first = dst + src;
+		u8 c1 = first < dst;
+		u64 second = first + carry_in;
+		u8 c2 = second < first;
+
+		result = second;
+		carry_out = c1 | c2;
+	}
+	/* A 32-bit GPR write zero-extends to 64 bits. */
+	*dstp = o->bits == 32 ? (u32)result : (unsigned long)result;
+	if (o->kind == K_ADCX)
+		regs->flags = (regs->flags & ~cf_mask) | (carry_out ? cf_mask : 0);
+	else
+		regs->flags = (regs->flags & ~of_mask) | (carry_out ? of_mask : 0);
+
+	regs->ip += insn->length;
+	{
+		static atomic64_t total;
+		long n = atomic64_inc_return(&total);
+
+		prof_hit(regs->ip - insn->length, o->kind);
+		if (!(n & 0xfffff))
+			pr_info("isa_emu: %ld ADX instructions emulated (last: %s[%d] kind=%d)\n",
+				n, current->comm, task_pid_nr(current), o->kind);
+	}
+	return true;
+}
+
 static void prof_dump(void)
 {
 	int top[24], n = 0, i, j;
@@ -347,12 +492,18 @@ bool isa_emu_handle_ud(struct pt_regs *regs)
 	struct xregs_state *xs;
 	int nbuf;
 
-	if (!isa_emu_enabled || !user_mode(regs) || !boot_cpu_has(X86_FEATURE_XSAVE))
+	if (!isa_emu_enabled || !user_mode(regs))
 		return false;
 	nbuf = insn_fetch_from_user(regs, buf);
 	if (nbuf <= 0 || !insn_decode_from_regs(&insn, regs, buf, nbuf))
 		return false;
-	if (!classify(&insn, &o))
+	{
+		struct adx_op adx;
+
+		if (classify_adx(&insn, &adx))
+			return emulate_adx(&insn, regs, &adx);
+	}
+	if (!boot_cpu_has(X86_FEATURE_XSAVE) || !classify(&insn, &o))
 		return false;
 
 	if (o.rm < 0) {

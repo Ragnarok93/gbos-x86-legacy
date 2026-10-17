@@ -97,6 +97,55 @@ static void sha1_block_ni(uint32_t st[5], const uint8_t *data)
 
 void _start_c(void)
 {
+	/* ADX is absent on Haswell: these fault into the kernel emulator there. */
+	{
+		uint64_t d, s = 0, f;
+		__asm__ volatile(
+			"movabsq $0x7fffffffffffffff, %[d]\n\t"
+			"addq $1, %[d]\n\t"
+			"movq $-1, %[d]\n\t"
+			"stc\n\t"
+			"adcxq %[s], %[d]\n\t"
+			"pushfq\n\tpopq %[f]"
+			: [d] "=&r"(d), [f] "=&r"(f)
+			: [s] "r"(s) : "cc", "memory");
+		check("adcxq carry and preserve OF", d == 0 && (f & 1) && (f & (1ULL << 11)));
+	}
+	{
+		uint64_t d, s = 0, f;
+		__asm__ volatile(
+			"movabsq $0x7fffffffffffffff, %[d]\n\t"
+			"addq $1, %[d]\n\t"
+			"movq $-1, %[d]\n\t"
+			"clc\n\t"
+			"adoxq %[s], %[d]\n\t"
+			"pushfq\n\tpopq %[f]"
+			: [d] "=&r"(d), [f] "=&r"(f)
+			: [s] "r"(s) : "cc", "memory");
+		check("adoxq carry and preserve CF", d == 0 && !(f & 1) && (f & (1ULL << 11)));
+	}
+	{
+		uint64_t d = 0x12345678ffffffffULL, f;
+		uint32_t s = 0;
+		__asm__ volatile(
+			"stc\n\t"
+			"adcx %k[s], %k[d]\n\t"
+			"pushfq\n\tpopq %[f]"
+			: [d] "+&r"(d), [f] "=&r"(f)
+			: [s] "r"(s) : "cc", "memory");
+		check("adcxl zero-extends 32-bit result", d == 0 && (f & 1));
+	}
+	{
+		uint64_t d = 4, f;
+		uint64_t srcmem = 1;
+		__asm__ volatile(
+			"clc\n\t"
+			"adcxq (%[p]), %[d]\n\t"
+			"pushfq\n\tpopq %[f]"
+			: [d] "+&r"(d), [f] "=&r"(f)
+			: [p] "r"(&srcmem) : "cc", "memory");
+		check("adcxq memory source", d == 5 && !(f & 1));
+	}
 	/* GFNI: 0x53 * 0xCA = 0x01 in the AES field */
 	{
 		__m256i a = _mm256_set1_epi8(0x53), b = _mm256_set1_epi8((char)0xCA), r = _mm256_gf2p8mul_epi8(a, b);
