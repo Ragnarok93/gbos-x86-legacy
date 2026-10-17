@@ -16,96 +16,69 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Extract and analyze boot logs
+      - name: Extract focused boot diagnostics
         shell: bash
         run: |
           python3 - <<'PY'
-          import os, re, zipfile
+          import collections, re, zipfile
           from pathlib import Path
 
           archive = Path("Logs/boot-1.zip")
-          if not archive.is_file():
-              raise SystemExit(f"Archive not found: {archive}")
-          out = Path("/tmp/boot-logs")
-          out.mkdir(parents=True, exist_ok=True)
           report = []
-          patterns = re.compile(
-              r'avc:.*denied|\b(kernel panic|panic - not syncing|oops:|BUG:|Oops:|Call Trace:|'
-              r'general protection fault|unable to handle kernel|segfault|fatal|'
-              r'failed|failure|error|exception|watchdog|timeout|timed out|'
-              r'permission denied|no such file|not found|I/O error|mount.*fail|'
-              r'unsupported|incompatible|reboot|shutdown|killed process)\b',
-              re.I
-          )
           with zipfile.ZipFile(archive) as z:
-              members = [i for i in z.infolist() if not i.is_dir()]
-              report.append(f"ARCHIVE: {archive} ({archive.stat().st_size:,} bytes)")
-              report.append(f"MEMBERS: {len(members)}")
-              for info in members:
-                  report.append(f"FILE: {info.filename} | {info.file_size:,} bytes")
-              report.append("")
-              text_files = []
-              for info in members:
-                  if info.file_size > 30_000_000:
-                      report.append(f"SKIPPED oversized file: {info.filename}")
-                      continue
+              infos = [x for x in z.infolist() if not x.is_dir()]
+              report += [f"ARCHIVE: {archive} ({archive.stat().st_size:,} bytes)", f"MEMBERS: {len(infos)}"]
+              report += [f"{x.filename} | {x.file_size:,} bytes" for x in infos]
+              def read(name):
                   try:
-                      raw = z.read(info)
-                      decoded = raw.decode("utf-8", errors="replace")
-                  except Exception as e:
-                      report.append(f"UNREADABLE: {info.filename}: {e}")
+                      return z.read(name).decode("utf-8", errors="replace")
+                  except KeyError:
+                      return ""
+              for name in ("boot-1/hw.txt", "boot-1/hwdetect.txt"):
+                  report += ["", f"===== FULL {name} =====", read(name)[:20000]]
+              stage = read("boot-1/stage0-dmesg.txt").splitlines()
+              report += ["", "===== STAGE0: GPU / STORAGE / BOOT ERRORS ====="]
+              rx = re.compile(r"gbos-stage0|i915|drm|firmware|error|failed|fail |panic|oops|fatal|super\.img|mount|avc: denied", re.I)
+              for i, line in enumerate(stage):
+                  if rx.search(line):
+                      report.append(f"{i+1}: {line[:1000]}")
+              crash = read("boot-1/crash.txt")
+              blocks = re.split(r"(?=--------- beginning of crash)", crash)
+              signals = collections.Counter(re.findall(r"Fatal signal \d+ \(([^)]+)\).*?\((?:[A-Z_]+)\).*?in tid \d+ \(([^)]+)\)", crash))
+              report += ["", f"===== CRASH SUMMARY: {len(blocks)-1} crash sections ====="]
+              report += [f"{count}x signal={sig} process/thread={proc}" for (sig, proc), count in signals.most_common(30)]
+              report += ["", "===== FIRST 4 CRASH SECTIONS (up to 100 lines each) ====="]
+              for block in [b for b in blocks if "Fatal signal" in b][:4]:
+                  lines = block.splitlines()
+                  report.append("---")
+                  report.extend(f"{i+1}: {line[:1000]}" for i, line in enumerate(lines[:100]))
+              # Search the logcat rotations without printing their enormous full contents.
+              logcat_names = [x.filename for x in infos if re.fullmatch(r"boot-1/logcat\.txt(?:\.\d+)?", x.filename)]
+              logcat_hits = []
+              avc_counts = collections.Counter()
+              for name in logcat_names:
+                  data = read(name)
+                  if not data:
                       continue
-                  # Save only text-like files in the runner workspace, never commit them.
-                  if "\x00" in decoded[:4096]:
-                      report.append(f"SKIPPED binary-looking file: {info.filename}")
-                      continue
-                  text_files.append((info.filename, decoded))
-                  dest = out / Path(info.filename).name
-                  dest.write_text(decoded, errors="replace")
-              report.append("")
-              report.append("=== TEXT FILE INVENTORY ===")
-              for name, text in text_files:
-                  lines = text.splitlines()
-                  report.append(f"{name}: {len(lines):,} lines, {len(text):,} chars")
-              report.append("")
-              report.append("=== ERROR / FAILURE MATCHES WITH CONTEXT ===")
-              total = 0
-              for name, text in text_files:
-                  lines = text.splitlines()
-                  hits = [i for i, line in enumerate(lines) if patterns.search(line)]
-                  if not hits:
-                      continue
-                  report.append(f"--- {name}: {len(hits)} matching lines ---")
-                  selected = set()
-                  for i in hits:
-                      selected.update(range(max(0, i-2), min(len(lines), i+3)))
-                  prev = -2
-                  for i in sorted(selected):
-                      if i > prev + 1:
-                          report.append("...")
-                      report.append(f"{i+1}: {lines[i][:1000]}")
-                      prev = i
-                      total += 1
-                      if total >= 900:
-                          report.append("TRUNCATED: reached 900 contextual lines.")
-                          break
-                  if total >= 900:
-                      break
-              if total == 0:
-                  report.append("No matching error keywords found.")
-              report.append("")
-              report.append("=== END OF EACH TEXT FILE (last 60 lines, max 20,000 chars/file) ===")
-              for name, text in text_files:
-                  lines = text.splitlines()
-                  if not lines:
-                      continue
-                  report.append(f"--- {name} ---")
-                  tail = "\n".join(f"{max(1, len(lines)-59)+j}: {line[:1000]}" for j, line in enumerate(lines[-60:]))
-                  report.append(tail[-20000:])
+                  for i, line in enumerate(data.splitlines()):
+                      if "avc: denied" in line.lower():
+                          key = re.sub(r".*avc: denied \{([^}]+)\}.*?scontext=([^ ]+).*?tcontext=([^ ]+).*", r"denied={\1} scontext=\2 tcontext=\3", line, flags=re.I)
+                          avc_counts[key[:300]] += 1
+                      if re.search(r"Fatal signal|SIGILL|SIGABRT|FATAL EXCEPTION|ANR in |Watchdog|Fatal error|not supported|unsupported instruction|Illegal instruction|cannot link executable|CANNOT LINK EXECUTABLE", line, re.I):
+                          logcat_hits.append((name, i+1, line[:1000]))
+              report += ["", "===== LOGCAT FATAL / NATIVE CRASH / ANR HITS (first 180) ====="]
+              report.extend(f"{n}:{i}: {line}" for n, i, line in logcat_hits[:180])
+              report += ["", "===== TOP AVC DENIAL SIGNATURES ====="]
+              report.extend(f"{count}x {key}" for key, count in avc_counts.most_common(30))
+              # Check kernel log for relevant failures, but only emit matching lines.
+              kmsg = read("boot-1/kmsg.log")
+              kmsg_hits = [(i+1, line[:1000]) for i, line in enumerate(kmsg.splitlines())
+                           if re.search(r"i915|hwmon_device|gbos-stage0|kernel panic|BUG:|Oops:|unable to handle kernel|avc: denied|firmware.*(fail|missing)|failed to mount|I/O error", line, re.I)]
+              report += ["", f"===== KMSG RELEVANT LINES ({len(kmsg_hits)} matches; first 160) ====="]
+              report.extend(f"{i}: {line}" for i, line in kmsg_hits[:160])
           result = "\n".join(report)
           Path("boot-diagnostic-report.txt").write_text(result, errors="replace")
-          # Keep the job log useful if the report is large; artifact retains the complete report.
-          print(result[:95000])
+          print(result[:90000])
           print(f"\nREPORT_CHAR_COUNT={len(result)}")
           PY
       - name: Upload diagnostic report
