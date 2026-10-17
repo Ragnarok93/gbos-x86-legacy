@@ -1,0 +1,44 @@
+Library: /tmp/gbos-system-extract/system/lib64/libcrypto.so
+Expected Build ID: 197265bb84dc0b522548a01e0f816b09
+  GNU                  0x00000010	NT_GNU_BUILD_ID (unique build ID bitstring)
+    Build ID: 197265bb84dc0b522548a01e0f816b09
+
+=== Instructions around crash offset 0x13cf86 ===
+
+/tmp/gbos-system-extract/system/lib64/libcrypto.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+000000000013cf60 <FIPS_module_hash@@Base+0x54cd0>:
+  13cf60:	cb                   	lret
+  13cf61:	48 8b 16             	mov    (%rsi),%rdx
+  13cf64:	4d 31 d2             	xor    %r10,%r10
+  13cf67:	4d 31 db             	xor    %r11,%r11
+  13cf6a:	4d 31 e4             	xor    %r12,%r12
+  13cf6d:	4d 31 ed             	xor    %r13,%r13
+  13cf70:	4d 31 f6             	xor    %r14,%r14
+  13cf73:	4d 31 ff             	xor    %r15,%r15
+  13cf76:	48 8d 7c 24 38       	lea    0x38(%rsp),%rdi
+  13cf7b:	48 31 ed             	xor    %rbp,%rbp
+  13cf7e:	eb 00                	jmp    13cf80 <FIPS_module_hash@@Base+0x54cf0>
+  13cf80:	c4 e2 bb f6 46 08    	mulx   0x8(%rsi),%r8,%rax
+  13cf86:	66 4d 0f 38 f6 c1    	adcx   %r9,%r8
+  13cf8c:	f3 4c 0f 38 f6 d0    	adox   %rax,%r10
+  13cf92:	c4 e2 b3 f6 46 10    	mulx   0x10(%rsi),%r9,%rax
+  13cf98:	66 4d 0f 38 f6 ca    	adcx   %r10,%r9
+  13cf9e:	f3 4c 0f 38 f6 d8    	adox   %rax,%r11
+  13cfa4:	c4 e2 ab f6 86 18 00 	mulx   0x18(%rsi),%r10,%rax
+  13cfab:	00 00 
+  13cfad:	66                   	data16
+  13cfae:	4d                   	rex.WRB
+  13cfaf:	0f                   	.byte 0xf
+
+=== bn_sqrx8x_internal ===
+
+/tmp/gbos-system-extract/system/lib64/libcrypto.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+Disassembly of section .plt:
