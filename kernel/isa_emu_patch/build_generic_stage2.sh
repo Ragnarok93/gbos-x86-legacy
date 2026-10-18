@@ -5,19 +5,41 @@ set -eu
 KVER=$(cat /build/out/include/config/kernel.release)
 SRC=/build/modroot_all/lib/modules/$KVER
 DST=/build/modroot_ini/lib/modules/$KVER
+MODULE_LIST=/host/kernel/isa_emu_patch/initramfs_modules.txt
 [ -d "$SRC" ] || { echo "missing full module tree: $SRC (run build_generic.sh first)" >&2; exit 1; }
-[ -f /build/ini_modules.txt ] || { echo "missing /build/ini_modules.txt" >&2; exit 1; }
+[ -f "$MODULE_LIST" ] || { echo "missing version-controlled module list: $MODULE_LIST" >&2; exit 1; }
 [ -f /host/kernel/out/busybox ] || { echo "missing /host/kernel/out/busybox" >&2; exit 1; }
-rm -rf /build/modroot_ini; mkdir -p "$DST"
-while read -r m; do
-  [ -n "$m" ] || continue
-  [ -f "$SRC/$m" ] || { echo "initramfs module missing from build: $m" >&2; exit 1; }
-  mkdir -p "$DST/$(dirname "$m")"
-  cp "$SRC/$m" "$DST/$m"
-done < /build/ini_modules.txt
-cp "$SRC/modules.order" "$SRC/modules.builtin" "$SRC/modules.builtin.modinfo" "$DST/" 2>/dev/null || true
+
+# Resolve each required module against this exact build and copy its complete dependency closure.
+# Keeping the root module names in git avoids relying on an undocumented file in the Docker volume.
+rm -rf /build/modroot_ini
+mkdir -p "$DST"
+DEPS_LOG=/build/out/initramfs-module-deps.log
+: > "$DEPS_LOG"
+while IFS= read -r module || [ -n "$module" ]; do
+  case "$module" in ''|'#'*) continue;; esac
+  if ! modprobe --dirname /build/modroot_all --set-version "$KVER" --show-depends "$module" >> "$DEPS_LOG"; then
+    echo "cannot resolve required initramfs module: $module" >&2
+    exit 1
+  fi
+done < "$MODULE_LIST"
+
+copied=0
+while read -r action path rest; do
+  [ "$action" = insmod ] || continue
+  case "$path" in
+    "$SRC"/*) rel=${path#"$SRC"/} ;;
+    *) echo "unexpected module path from modprobe: $path" >&2; exit 1 ;;
+  esac
+  [ -f "$path" ] || { echo "resolved module file missing: $path" >&2; exit 1; }
+  mkdir -p "$DST/$(dirname "$rel")"
+  cp -f "$path" "$DST/$rel"
+  copied=$((copied + 1))
+done < "$DEPS_LOG"
+[ "$copied" -gt 0 ] || { echo "module resolver produced no loadable initramfs modules" >&2; exit 1; }
+
 depmod -b /build/modroot_ini "$KVER"
-echo "initramfs modules: $(find "$DST" -name '*.ko' | wc -l), $(du -sh /build/modroot_ini | cut -f1) (kernel $KVER)"
+echo "initramfs modules: $(find "$DST" -name '*.ko*' | wc -l), $(du -sh /build/modroot_ini | cut -f1) (kernel $KVER)"
 
 # Build the initramfs from the exact stage0 script and matching modules, then point the kernel
 # config at it. This is the missing link between edits to usb/stage0_init.sh and BOOTX64.EFI.
@@ -40,9 +62,9 @@ cp /build/out/arch/x86/boot/bzImage /host/usb/out/BOOTX64.EFI
 rm -rf /host/usb/modules/lib/modules/*
 cp -a /build/modroot_all/lib/modules/. /host/usb/modules/lib/modules/
 {
-  printf 'kernel_release=%s\n' "$KVER"
-  printf 'stage0_sha256=%s\n' "$(sha256sum /host/usb/stage0_init.sh | cut -d' ' -f1)"
-  printf 'config_sha256=%s\n' "$(sha256sum /host/kernel/configure_whl.py | cut -d' ' -f1)"
-  printf 'efi_sha256=%s\n' "$(sha256sum /host/usb/out/BOOTX64.EFI | cut -d' ' -f1)"
+  printf 'kernel_release=%s\\n' "$KVER"
+  printf 'stage0_sha256=%s\\n' "$(sha256sum /host/usb/stage0_init.sh | cut -d' ' -f1)"
+  printf 'config_sha256=%s\\n' "$(sha256sum /host/kernel/configure_whl.py | cut -d' ' -f1)"
+  printf 'efi_sha256=%s\\n' "$(sha256sum /host/usb/out/BOOTX64.EFI | cut -d' ' -f1)"
 } > /host/usb/out/kernel-build.manifest
 echo "Wrote /host/usb/out/BOOTX64.EFI and matching modules for $KVER"
