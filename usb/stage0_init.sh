@@ -106,7 +106,7 @@ case "$MODE" in install) ;; *) MODE=boot;; esac
 # Mount the matching replacement-kernel modules before the first platform-driver modprobe.
 # Otherwise /lib/modules may still contain the recovery/initramfs i915.ko, which can fail with
 # unresolved symbols even though the correct i915.ko is packaged on the GBOS volume.
-if [ "$HWDETECT" != 0 ] && [ -f "$G/hwdetect.sh" ]; then
+if [ -d "$G/modules/lib/modules" ]; then
   KVER=$(uname -r)
   if [ -f "$G/modules/lib/modules/$KVER/modules.dep" ]; then
     if mount --bind "$G/modules/lib/modules" /lib/modules; then
