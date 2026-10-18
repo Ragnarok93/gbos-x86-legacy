@@ -1,0 +1,19 @@
+Panic#1 Part6
+<12>[  167.777847][    T1] gbos-stage0: dmctl vendor_dlkm_a = super[7165952 +35344] rc=127
+<12>[  167.793612][    T1] gbos-stage0: running gbos/hook.sh
+<6>[  167.803577][  T360] zram: Added device: zram0
+<12>[  167.804693][    T1] gbos-stage0: hook: zram loaded
+<12>[  168.034384][    T1] gbos-stage0: hwdetect: module tree 6.18.21-gbos-whl+ (396 modules) from gbos/modules
+<6>[  168.705325][  T375] i915 0000:00:02.0: [drm] Found haswell (device ID 0416) integrated display version 7.00 stepping N/A
+<6>[  168.706691][  T375] i915 0000:00:02.0: [drm] VT-d active for gfx access
+<6>[  168.740671][  T375] Console: switching to colour dummy device 80x25
+<6>[  168.748931][  T375] i915 0000:00:02.0: vgaarb: deactivate vga console
+<6>[  168.748995][  T375] i915 0000:00:02.0: [drm] Using Transparent Hugepages
+<5>[  168.749000][  T375] i915 0000:00:02.0: [drm] DMAR active, disabling use of stolen memory
+<6>[  168.752399][  T375] i915 0000:00:02.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=io+mem
+<6>[  168.826713][  T375] i915 0000:00:02.0: [drm] Registered 3 planes with drm panic
+<6>[  168.826722][  T375] [drm] Initialized i915 1.6.0 for 0000:00:02.0 on minor 1
+<6>[  168.830747][  T375] ACPI: video: Video Device [GFX0] (multi-head: yes  rom: no  post: no)
+<6>[  168.831204][  T375] input: Video Bus as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/LNXVIDEO:00/input/input11
+<6>[  168.853758][   T84] snd_hda_intel 0000:00:03.0: bound 0000:00:02.0 (ops intel_audio_component_bind_ops [i915])
+<6>[  168.858991][   T98] input: HDA Intel HDMI HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:03.0/sound/card1/input12

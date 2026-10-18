@@ -1,0 +1,20 @@
+Panic#1 Part10
+<6>[   12.162736][   T66] snd_hda_intel 0000:00:03.0: bound 0000:00:02.0 (ops intel_audio_component_bind_ops [i915])
+<6>[   12.170068][  T102] input: HDA Intel HDMI HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:03.0/sound/card1/input12
+<6>[   12.170102][  T102] input: HDA Intel HDMI HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:03.0/sound/card1/input13
+<6>[   12.170130][  T102] input: HDA Intel HDMI HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:03.0/sound/card1/input14
+<6>[   12.180217][  T260] i915 0000:00:02.0: [drm] fb0: i915drmfb frame buffer device
+<12>[   12.180868][    T1] gbos-stage0: i915 loaded
+<12>[   14.198338][    T1] gbos-stage0: using super.img (dynamic partitions)
+<6>[   14.480908][  T270] loop7: detected capacity change from 0 to 7204864
+<6>[   14.487815][  T275] loop0: detected capacity change from 0 to 7202816
+<6>[   14.491407][  T276] erofs (device loop0): initialized per-cpu workers successfully.
+<6>[   14.491456][  T276] erofs (device loop0): mounted with root inode @ nid 57.
+<12>[   14.491633][    T1] gbos-stage0: mounted system_a (super @ sector 2048) -> /new
+<6>[   14.495840][  T283] loop1: detected capacity change from 0 to 4982784
+<6>[   14.514404][  T284] erofs (device loop1): mounted with root inode @ nid 51.
+<12>[   14.514593][    T1] gbos-stage0: mounted vendor_a (super @ sector 2222080) -> /new/vendor
+<6>[   14.519766][  T287] loop2: detected capacity change from 0 to 4239360
+<6>[   14.530690][  T288] erofs (device loop2): mounted with root inode @ nid 40.
+<12>[   14.530878][    T1] gbos-stage0: mounted product_a (super @ sector 2965504) -> /new/product
+<6>[   14.536037][  T291] loop3: detected capacity change from 0 to 389120

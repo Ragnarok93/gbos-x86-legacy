@@ -1,0 +1,22 @@
+Panic#1 Part10
+<6>[   47.749118][  T297] erofs (device loop3): mounted with root inode @ nid 42.
+<12>[   47.749297][    T1] gbos-stage0: mounted system_ext_a (super @ sector 6815744) -> /new/system_ext
+<6>[   47.754361][  T300] loop4: detected capacity change from 0 to 57344
+<6>[   47.762732][  T301] erofs (device loop4): mounted with root inode @ nid 38.
+<12>[   47.762912][    T1] gbos-stage0: mounted system_dlkm_a (super @ sector 7147520) -> /new/system_dlkm
+<6>[   47.768812][  T304] loop5: detected capacity change from 0 to 38912
+<6>[   47.775888][  T305] erofs (device loop5): mounted with root inode @ nid 41.
+<12>[   47.776386][    T1] gbos-stage0: mounted vendor_dlkm_a (super @ sector 7165952) -> /new/vendor_dlkm
+<12>[   47.796453][    T1] gbos-stage0: early: patched system libz
+<12>[   47.859732][    T1] gbos-stage0: early: patched system libcrypto
+<12>[   47.871301][    T1] gbos-stage0: early: patched vendor libz
+<12>[   47.932200][    T1] gbos-stage0: early: patched vendor libcrypto
+<12>[   48.280322][    T1] gbos-stage0: dmctl vendor = super[2048 +2219136] rc=0
+<12>[   48.287803][    T1] gbos-stage0: dmctl vendor_a = super[2222080 +743376] rc=0
+<12>[   48.295077][    T1] gbos-stage0: dmctl product_a = super[2965504 +3848680] rc=0
+<12>[   48.302234][    T1] gbos-stage0: dmctl system_ext_a = super[6815744 +330928] rc=0
+<12>[   48.309437][    T1] gbos-stage0: dmctl system_dlkm_a = super[7147520 +18032] rc=0
+<12>[   48.316566][    T1] gbos-stage0: dmctl vendor_dlkm_a = super[7165952 +35344] rc=0
+<12>[   48.332903][    T1] gbos-stage0: running gbos/hook.sh
+<6>[   48.337476][  T341] zram: Added device: zram0
+<12>[   48.338548][    T1] gbos-stage0: hook: zram loaded
