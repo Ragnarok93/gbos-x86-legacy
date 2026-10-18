@@ -34,7 +34,7 @@ gbos_early_patch() {
   # sidecar; never execute a replacement directly from the FAT USB filesystem.
   INIT_SRC=$GBOS_PATCH_ROOT/init
   INIT_DST=/new/system/bin/init
-  EXPECTED_INIT_SHA=$(cat "$GBOS_PATCH_ROOT/init.orig.sha256" 2>/dev/null | tr -d '\\r\\n')
+  EXPECTED_INIT_SHA=$(cat "$GBOS_PATCH_ROOT/init.orig.sha256" 2>/dev/null | tr -d '\r\n')
   ACTUAL_INIT_SHA=$(sha256sum "$INIT_DST" 2>/dev/null | cut -d' ' -f1)
   if [ -x "$INIT_SRC" ] && [ -x "$INIT_DST" ] &&
      [ "${#EXPECTED_INIT_SHA}" = 64 ] &&
