@@ -16,6 +16,26 @@ OUT=${1:-$ROOT/dist}
 U=$ROOT/usb
 P=$ROOT/lapis/parts
 NAME=gbOS86-$(date +%Y%m%d)
+
+# Never build an image from a stale EFI or a module tree from another kernel build.
+MANIFEST=$U/out/kernel-build.manifest
+[ -f "$MANIFEST" ] || { echo "missing $MANIFEST; run tools/rebuild_kernel_efi.sh first" >&2; exit 1; }
+. "$MANIFEST"
+[ -n "${kernel_release:-}" ] && [ -n "${stage0_sha256:-}" ] && [ -n "${config_sha256:-}" ] && [ -n "${efi_sha256:-}" ] || {
+  echo "invalid kernel build manifest: $MANIFEST" >&2; exit 1;
+}
+[ "$(sha256sum "$U/stage0_init.sh" | cut -d' ' -f1)" = "$stage0_sha256" ] || {
+  echo "stage0_init.sh changed after kernel build; run tools/rebuild_kernel_efi.sh" >&2; exit 1;
+}
+[ "$(sha256sum "$ROOT/kernel/configure_whl.py" | cut -d' ' -f1)" = "$config_sha256" ] || {
+  echo "configure_whl.py changed after kernel build; run tools/rebuild_kernel_efi.sh" >&2; exit 1;
+}
+[ "$(sha256sum "$U/out/BOOTX64.EFI" | cut -d' ' -f1)" = "$efi_sha256" ] || {
+  echo "BOOTX64.EFI does not match build manifest; run tools/rebuild_kernel_efi.sh" >&2; exit 1;
+}
+[ -f "$U/modules/lib/modules/$kernel_release/modules.dep" ] || {
+  echo "matching module tree missing for $kernel_release; run tools/rebuild_kernel_efi.sh" >&2; exit 1;
+}
 STAGE=$OUT/$NAME.stage
 mkdir -p "$OUT"; rm -rf "$STAGE"; mkdir -p "$STAGE/efi/EFI/BOOT" "$STAGE/gbos/gbos"
 
