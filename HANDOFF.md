@@ -1,10 +1,10 @@
 # gbos-x86 handoff
 
-## 2026-10-18: Complete VEX.128 emulation coverage for VAES and VPCLMULQDQ
+## 2026-10-18: Complete VEX.128 emulation coverage for VPCLMULQDQ
 
-- Audit found a concrete decoder gap: the #UD classifier required VEX.L=1 for VAES and VPCLMULQDQ, so valid VEX.128 (XMM) encodings were not emulated and could still SIGILL on Haswell. Both instruction families support 128-bit and 256-bit vector lengths.
-- Removed that VEX.L restriction. The existing core already processes 16-byte vectors, and VEX.128 register writes already clear the upper YMM half.
-- Added freestanding QEMU tests for all four VEX.128 VAES operations and all four VPCLMULQDQ immediate selections, using AES-NI/PCLMULQDQ as the native oracle. Build and run `kernel/isa_emu_test/build_test.sh` and `kernel/isa_emu_test/run_qemu.py <kernel> Haswell` (or the available QEMU Haswell CPU model) to verify; not yet run by this GitHub-only edit.
+- Audit found a concrete decoder gap: the #UD classifier required VEX.L=1 for VPCLMULQDQ, so valid VEX.128 (XMM) encodings were not emulated and could still SIGILL on Haswell. VPCLMULQDQ supports both 128-bit and 256-bit vector lengths. VAES, by contrast, uses VEX.256 (and newer EVEX.512) forms; there is no VEX.128 VAES instruction, so its VEX.L=1 guard is correct.
+- Removed the VEX.L restriction only for VPCLMULQDQ. The existing core already processes 16-byte vectors, and VEX.128 register writes already clear the upper YMM half.
+- Added a freestanding QEMU test for all four VEX.128 VPCLMULQDQ immediate selections, using legacy PCLMULQDQ as the native oracle. Build and run `kernel/isa_emu_test/build_test.sh` and `kernel/isa_emu_test/run_qemu.py <kernel> Haswell` (or the available QEMU Haswell CPU model) to verify; not yet run by this GitHub-only edit.
 - Upstream survey: Brunch documents generic ChromeOS-on-PC compatibility starting at Intel Haswell, but does not advertise an instruction emulator for modern userspace. openFyde is a Chromium OS source collection, not a documented fix for these newer x86 ISA faults. Their useful precedent is broad kernel/firmware/platform support; this project still needs instruction-level compatibility for newer recovery-image binaries.
 
 ## 2026-10-18: Make E6540 kernel rebuild and image packaging fail-safe
@@ -30,7 +30,7 @@ SHA-NI, 256-bit VAES/VPCLMULQDQ, AVX-IFMA and AVX-512; the lapis binaries use th
 - `isa-emu/isa_emu_core.c`: software versions of those instructions. 13,373 known-answer checks pass.
 - **Kernel emulation** (new): `kernel/isa_emu_patch/`. #UD handler in `arch/x86/kernel/traps.c` calls
   `isa_emu_handle_ud()` (`arch/x86/kernel/fpu/isa_emu.c`), which decodes the instruction, runs the core on the
-  saved xsave image, and advances RIP. Covers GFNI (SSE+VEX), AVX-VNNI(-INT8), SHA-NI, VAES (128/256-bit), VPCLMULQDQ (128/256-bit),
+  saved xsave image, and advances RIP. Covers GFNI (SSE+VEX), AVX-VNNI(-INT8), SHA-NI, VAES-256, VPCLMULQDQ (128/256-bit),
   AVX-IFMA. Boot param `noisaemu` disables it. Source tree is in docker volume `gbos-ksrc`; `apply.sh` applies the
   patch, `build.sh` does the incremental build (image `gbos-kbuild`, clang r584948c).
 - Kernel image: `kernel/out_isa/bzImage` (sha256 in `bzImage.sha256`; rebuilt since, so recompute). Original kernel
