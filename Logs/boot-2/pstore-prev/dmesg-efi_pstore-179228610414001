@@ -1,0 +1,20 @@
+Panic#1 Part14
+<6>[    0.733626][    T9] usb 3-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+<6>[    0.734219][    T9] hub 3-1:1.0: USB hub found
+<6>[    0.735502][    T9] hub 3-1:1.0: 8 ports detected
+<6>[    0.944652][   T74] ata2: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+<6>[    0.948826][   T74] ata2.00: ATAPI: MATSHITA DVD+/-RW UJ8FB, 1.02, max UDMA/100
+<6>[    0.949578][   T74] ata2.00: Features: Dev-Attention HIPM DIPM
+<6>[    0.956660][   T74] ata2.00: configured for UDMA/100
+<5>[    0.974275][   T65] scsi 1:0:0:0: CD-ROM            MATSHITA DVD+-RW UJ8FB    1.02 PQ: 0 ANSI: 5
+<6>[    1.004608][   T33] usb 1-1.5: new high-speed USB device number 3 using ehci-pci
+<6>[    1.016597][   T88] usb 3-1.5: new full-speed USB device number 3 using ehci-pci
+<6>[    1.117480][   T88] usb 3-1.5: New USB device found, idVendor=8087, idProduct=07da, bcdDevice=78.69
+<6>[    1.118365][   T88] usb 3-1.5: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+<6>[    1.174647][   T33] usb 1-1.5: New USB device found, idVendor=0c45, idProduct=64d0, bcdDevice=42.14
+<6>[    1.175540][   T33] usb 1-1.5: New USB device strings: Mfr=2, Product=1, SerialNumber=0
+<6>[    1.176308][   T33] usb 1-1.5: Product: Laptop_Integrated_Webcam_HD
+<6>[    1.177063][   T33] usb 1-1.5: Manufacturer: CN0767N972487554B7BPA01
+<6>[    1.185448][   T33] uvcvideo 1-1.5:1.0: Found UVC 1.00 device Laptop_Integrated_Webcam_HD (0c45:64d0)
+<6>[    1.280647][   T98] tsc: Refined TSC clocksource calibration: 2693.774 MHz
+<6>[    1.281606][   T98] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x26d44549f58, max_idle_ns: 440795338245 ns

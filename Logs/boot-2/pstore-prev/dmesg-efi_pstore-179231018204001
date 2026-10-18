@@ -1,0 +1,19 @@
+Panic#1 Part4
+<12>[   24.723184][    T1] gbos-stage0: hook: system libz already patched (early_patch.sh)
+<12>[   24.724345][    T1] gbos-stage0: hook: vendor libz already patched (early_patch.sh)
+<12>[   24.725639][    T1] gbos-stage0: hook: system libcrypto already patched (early_patch.sh)
+<12>[   24.726885][    T1] gbos-stage0: hook: vendor libcrypto already patched (early_patch.sh)
+<12>[   24.728458][    T1] gbos-stage0: data/metadata: tmpfs (not persistent)
+<12>[   25.078707][    T1] gbos-stage0: switching root -> /system/bin/init selinux_setup
+<14>[   25.354390][    T1] init: [libfstab] Using Android DT directory /proc/device-tree/firmware/android/
+<14>[   25.357124][    T1] init: Opening SELinux policy
+<14>[   25.393315][    T1] init: Loading SELinux policy
+<6>[   25.400428][    T1] SELinux:  Permission watch_mountns in class file not defined in policy.
+<6>[   25.400988][    T1] SELinux:  Permission watch_mountns in class dir not defined in policy.
+<6>[   25.401521][    T1] SELinux:  Permission watch_mountns in class lnk_file not defined in policy.
+<6>[   25.402042][    T1] SELinux:  Permission watch_mountns in class chr_file not defined in policy.
+<6>[   25.402551][    T1] SELinux:  Permission watch_mountns in class blk_file not defined in policy.
+<6>[   25.403055][    T1] SELinux:  Permission watch_mountns in class sock_file not defined in policy.
+<6>[   25.403575][    T1] SELinux:  Permission watch_mountns in class fifo_file not defined in policy.
+<6>[   25.404100][    T1] SELinux:  Permission watch_mountns in class anon_inode not defined in policy.
+<6>[   25.404620][    T1] SELinux:  Permission watch_mountns in class memfd_file not defined in policy.

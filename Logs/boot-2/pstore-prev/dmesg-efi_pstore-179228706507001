@@ -1,0 +1,21 @@
+Panic#1 Part7
+<6>[  796.108434][  T713] e1000e 0000:00:19.0 eth0: MAC: 11, PHY: 12, PBA No: FFFFFF-0FF
+<6>[  796.116994][   T84] i801_smbus 0000:00:1f.3: SPD Write Disable is set
+<6>[  796.117645][   T84] i801_smbus 0000:00:1f.3: SMBus using PCI interrupt
+<6>[  796.119617][   T84] i2c i2c-9: Successfully instantiated SPD at 0x50
+<6>[  796.249684][  T713] Bluetooth: Core ver 2.22
+<6>[  796.251130][  T713] NET: Registered PF_BLUETOOTH protocol family
+<6>[  796.252548][  T713] Bluetooth: HCI device and connection manager initialized
+<6>[  796.253973][  T713] Bluetooth: HCI socket layer initialized
+<6>[  796.255156][  T713] Bluetooth: L2CAP socket layer initialized
+<6>[  796.256349][  T713] Bluetooth: SCO socket layer initialized
+<6>[  796.289354][  T713] usbcore: registered new interface driver btusb
+<3>[  796.290753][  T730] Bluetooth: hci0: unexpected event for opcode 0x0000
+<6>[  796.298545][  T713] dcdbas dcdbas: Dell Systems Management Base Driver (version 5.6.0-3.4)
+<6>[  796.306906][  T713] input: Dell WMI hotkeys as /devices/platform/PNP0C14:00/wmi_bus/wmi_bus-PNP0C14:00/9DBB5994-A997-11DA-B012-B622A1EF5492-2/input/input15
+<6>[  797.486034][  T740] iwlwifi 0000:03:00.0: CONFIG_IWLWIFI_DEBUG disabled
+<6>[  797.486603][  T740] iwlwifi 0000:03:00.0: CONFIG_IWLWIFI_DEBUGFS disabled
+<6>[  797.487138][  T740] iwlwifi 0000:03:00.0: CONFIG_IWLWIFI_DEVICE_TRACING enabled
+<6>[  797.487666][  T740] iwlwifi 0000:03:00.0: Detected Intel(R) Centrino(R) Advanced-N 6235 AGN, REV=0xB0
+<7>[  797.540709][  T740] ieee80211 phy0: Selected rate control algorithm 'iwl-agn-rs'
+<12>[  797.541823][    T1] gbos-stage0: hwdetect: loaded iwldvm (op_mode announced by iwlwifi)

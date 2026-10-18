@@ -1,0 +1,19 @@
+Panic#1 Part9
+<3>[   32.118643][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.119054][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.119529][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.119984][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.120411][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.120935][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.121357][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.121782][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.122242][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.122710][    C3] I/O error, dev loop0, sector 0 op 0x0:(READ) flags 0x0 phys_seg 1 prio class 2
+<3>[   32.123130][    C3] Buffer I/O error on dev loop0, logical block 0, async page read
+<3>[   32.123602][  T265] erofs (device loop0): cannot read erofs superblock
+<12>[   32.124626][    T1] gbos-stage0: mount system_a FAILED
+<12>[   32.125012][    T1] gbos-stage0: FATAL: system mount failed
+<12>[   32.125304][    T1] gbos-stage0: DROPPING TO SHELL (failure). type 'exit' to continue boot.
+<6>[  167.741260][  T324] loop1: detected capacity change from 0 to 4982784
+<4>[  167.742218][   T84] fat_get_cluster: 7 callbacks suppressed
+<3>[  167.742221][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
