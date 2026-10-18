@@ -29,7 +29,11 @@ grep -q '^CONFIG_INITRAMFS_SOURCE="/build/out/gbos_stage0.cpio"$' /build/out/.co
 }
 # The kernel must be rebuilt after the initramfs is generated, otherwise bzImage still contains
 # the previous stage0. Fail rather than silently packaging a stale EFI binary.
-make -C /build/src O=/build/out ARCH=x86_64 LLVM=/build/inputs/clang-r584948c/bin/ CC=/build/inputs/clang-r584948c/bin/clang-22 -j${JOBS:-$(nproc)} bzImage 2>&1 | tail -n 30
+if ! make -C /build/src O=/build/out ARCH=x86_64 LLVM=/build/inputs/clang-r584948c/bin/ CC=/build/inputs/clang-r584948c/bin/clang-22 -j${JOBS:-$(nproc)} bzImage > /build/out/build-stage0.log 2>&1; then
+  tail -n 80 /build/out/build-stage0.log
+  exit 1
+fi
+tail -n 30 /build/out/build-stage0.log
 mkdir -p /host/usb/out /host/usb/modules/lib/modules /host/kernel/out
 cp /build/out/arch/x86/boot/bzImage /host/kernel/out/bzImage
 cp /build/out/arch/x86/boot/bzImage /host/usb/out/BOOTX64.EFI
