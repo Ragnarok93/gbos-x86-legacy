@@ -1,0 +1,23 @@
+Panic#1 Part15
+<6>[    0.616292][   T72] ata1.00: Features: DIPM
+<6>[    0.618094][   T72] ata1.00: configured for UDMA/133
+<5>[    0.629987][   T12] scsi 0:0:0:0: Direct-Access     ATA      SPCC Solid State 61.3 PQ: 0 ANSI: 5
+<5>[    0.632761][   T15] sd 0:0:0:0: [sda] 500118192 512-byte logical blocks: (256 GB/238 GiB)
+<5>[    0.633623][   T15] sd 0:0:0:0: [sda] Write Protect is off
+<7>[    0.633832][   T15] sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+<5>[    0.634029][   T15] sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+<6>[    0.634838][   T15] sd 0:0:0:0: [sda] Preferred minimum I/O size 512 bytes
+<6>[    0.659457][   T15]  sda: sda1 sda2 sda3 sda4
+<5>[    0.659828][   T15] sd 0:0:0:0: [sda] Attached SCSI disk
+<6>[    0.710697][   T33] usb 2-6: New USB device found, idVendor=21c4, idProduct=0cc7, bcdDevice= 2.00
+<6>[    0.710971][   T33] usb 2-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+<6>[    0.711186][   T33] usb 2-6: Product: USB Flash Drive
+<6>[    0.711390][   T33] usb 2-6: Manufacturer: Lexar
+<6>[    0.711596][   T33] usb 2-6: SerialNumber: 562726443E614BE8
+<6>[    0.712777][   T33] usb-storage 2-6:1.0: USB Mass Storage device detected
+<6>[    0.714010][   T33] scsi host5: usb-storage 2-6:1.0
+<6>[    0.721066][   T88] usb 1-1: New USB device found, idVendor=8087, idProduct=8008, bcdDevice= 0.04
+<6>[    0.721346][   T88] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+<6>[    0.721838][   T88] hub 1-1:1.0: USB hub found
+<6>[    0.723177][   T88] hub 1-1:1.0: 6 ports detected
+<6>[    0.733349][    T9] usb 3-1: New USB device found, idVendor=8087, idProduct=8000, bcdDevice= 0.04

@@ -1,0 +1,19 @@
+Panic#1 Part10
+<12>[    2.519747][    T1] gbos-stage0: found gbos volume on stick at /dev/sdb2 (stick=/dev/sdb2 nvme=none)
+<4>[    2.525140][  T154] FAT-fs (sdb2): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+<4>[   11.581323][   T98] pci 0000:00:03.0: deferred probe pending: snd_hda_intel: couldn't bind with audio component
+<12>[   16.155517][    T1] gbos-stage0: logging to USB: gbos/logs/boot-2/kmsg.log
+<12>[   16.158621][    T1] gbos-stage0: loaded gbos.cfg: MODE=live SHELL_AT=none LOAD_I915=1 LOAD_WIFI=0
+<12>[   29.696895][    T1] gbos-stage0: hardware inventory written (hw.txt)
+<12>[   29.697860][    T1] gbos-stage0: modprobe i915 (UHD 620). If the screen freezes here, set LOAD_I915=0 in gbos.cfg
+<4>[   29.706092][  T255] wmi_bus wmi_bus-PNP0C14:00: [Firmware Bug]: WQBC data block query control method not found
+<4>[   29.742914][  T255] i915: Unresolved symbol hwmon_device_register_with_info (err -2)
+<4>[   29.743879][  T255] i915: Unresolved symbol hwmon_device_unregister (err -2)
+<4>[   29.799517][  T255] i915: Unresolved symbol hwmon_device_register_with_info (err -2)
+<4>[   29.800469][  T255] i915: Unresolved symbol hwmon_device_unregister (err -2)
+<12>[   29.810327][    T1] gbos-stage0: i915 load FAILED rc=1
+<12>[   31.825831][    T1] gbos-stage0: using super.img (dynamic partitions)
+<6>[   32.109174][  T259] loop7: detected capacity change from 0 to 7204864
+<6>[   32.116658][  T264] loop0: detected capacity change from 0 to 7202816
+<3>[   32.117648][   T84] FAT-fs (sdb2): error, fat_get_cluster: invalid cluster chain (i_pos 1493634)
+<3>[   32.118199][   T84] FAT-fs (sdb2): Filesystem has been set read-only

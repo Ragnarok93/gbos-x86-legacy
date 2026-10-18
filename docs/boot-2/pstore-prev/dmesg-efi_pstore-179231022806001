@@ -1,0 +1,20 @@
+Panic#1 Part6
+<6>[   17.420136][  T368] iwlwifi 0000:03:00.0: CONFIG_IWLWIFI_DEVICE_TRACING enabled
+<6>[   17.420672][  T368] iwlwifi 0000:03:00.0: Detected Intel(R) Centrino(R) Advanced-N 6235 AGN, REV=0xB0
+<7>[   17.454781][  T368] ieee80211 phy0: Selected rate control algorithm 'iwl-agn-rs'
+<12>[   17.455940][    T1] gbos-stage0: hwdetect: loaded iwldvm (op_mode announced by iwlwifi)
+<12>[   17.472661][    T1] gbos-stage0: hwdetect: coldplug pass 1: 40 modules loaded (was 13)
+<6>[   17.574509][   T22] intel_rapl_common: Found RAPL domain package
+<6>[   17.575145][   T22] intel_rapl_common: Found RAPL domain core
+<6>[   17.575757][   T22] intel_rapl_common: Found RAPL domain uncore
+<6>[   17.576364][   T22] intel_rapl_common: Found RAPL domain dram
+<6>[   17.576942][   T22] intel_rapl_common: package-0:package:long_term locked by BIOS
+<6>[   17.577479][   T22] intel_rapl_common: package-0:package:short_term locked by BIOS
+<12>[   18.600912][    T1] gbos-stage0: hwdetect: coldplug pass 2: 41 modules loaded (was 40)
+<12>[   19.722109][    T1] gbos-stage0: hwdetect: coldplug pass 3: 41 modules loaded (was 41)
+<12>[   19.727125][    T1] gbos-stage0: hwdetect: devices after 0s: wifi=wlan0  bt=hci0  sound= 0 [PCH ]: HDA-Intel - HDA Intel PCH; 1 [HDMI ]: HDA-Intel - HDA Intel HDMI; backlight=intel_backlight 
+<12>[   19.872678][    T1] gbos-stage0: hwdetect: report written (hwdetect.txt)
+<12>[   19.873419][    T1] gbos-stage0: hook: drm.debug=0x04 (KMS) until boot_completed
+<6>[   19.874391][  T505] loop6: detected capacity change from 0 to 16384
+<6>[   19.885646][  T505]  loop6: p1 p2 p3
+<12>[   20.907446][    T1] gbos-stage0: hook: bootdisk on loop6: loop6p1 loop6p2 loop6p3 

@@ -1,0 +1,20 @@
+Panic#1 Part7
+<6>[   19.632106][  T356] e1000e 0000:00:19.0 0000:00:19.0 (uninitialized): registered PHC clock
+<6>[   19.700601][  T356] e1000e 0000:00:19.0 eth0: (PCI Express:2.5GT/s:Width x1) 34:e6:d7:88:5f:18
+<6>[   19.701961][  T356] e1000e 0000:00:19.0 eth0: Intel(R) PRO/1000 Network Connection
+<6>[   19.703320][  T356] e1000e 0000:00:19.0 eth0: MAC: 11, PHY: 12, PBA No: FFFFFF-0FF
+<6>[   19.717448][   T82] i801_smbus 0000:00:1f.3: SPD Write Disable is set
+<6>[   19.719264][   T82] i801_smbus 0000:00:1f.3: SMBus using PCI interrupt
+<6>[   19.725115][   T82] i2c i2c-9: Successfully instantiated SPD at 0x50
+<6>[   19.851332][  T356] Bluetooth: Core ver 2.22
+<6>[   19.852662][  T356] NET: Registered PF_BLUETOOTH protocol family
+<6>[   19.853907][  T356] Bluetooth: HCI device and connection manager initialized
+<6>[   19.855172][  T356] Bluetooth: HCI socket layer initialized
+<6>[   19.856229][  T356] Bluetooth: L2CAP socket layer initialized
+<6>[   19.857308][  T356] Bluetooth: SCO socket layer initialized
+<6>[   19.887176][  T356] usbcore: registered new interface driver btusb
+<3>[   19.888535][  T362] Bluetooth: hci0: unexpected event for opcode 0x0000
+<6>[   19.904747][  T356] dcdbas dcdbas: Dell Systems Management Base Driver (version 5.6.0-3.4)
+<6>[   19.919051][  T356] input: Dell WMI hotkeys as /devices/platform/PNP0C14:00/wmi_bus/wmi_bus-PNP0C14:00/9DBB5994-A997-11DA-B012-B622A1EF5492-2/input/input15
+<6>[   21.117606][  T370] iwlwifi 0000:03:00.0: CONFIG_IWLWIFI_DEBUG disabled
+<6>[   21.118143][  T370] iwlwifi 0000:03:00.0: CONFIG_IWLWIFI_DEBUGFS disabled

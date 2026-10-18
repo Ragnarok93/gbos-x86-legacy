@@ -1,0 +1,22 @@
+Panic#1 Part13
+<6>[    0.699141][   T53] usb 2-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+<6>[    0.699359][   T53] usb 2-6: Product: USB Flash Drive
+<6>[    0.699573][   T53] usb 2-6: Manufacturer: Lexar
+<6>[    0.699795][   T53] usb 2-6: SerialNumber: 562726443E614BE8
+<6>[    0.700884][   T71] usb 1-1: New USB device found, idVendor=8087, idProduct=8008, bcdDevice= 0.04
+<6>[    0.701108][   T53] usb-storage 2-6:1.0: USB Mass Storage device detected
+<6>[    0.701128][   T71] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+<6>[    0.702603][   T71] hub 1-1:1.0: USB hub found
+<6>[    0.703414][   T71] hub 1-1:1.0: 6 ports detected
+<6>[    0.704850][   T53] scsi host5: usb-storage 2-6:1.0
+<6>[    0.717034][   T90] usb 3-1: New USB device found, idVendor=8087, idProduct=8000, bcdDevice= 0.04
+<6>[    0.717314][   T90] usb 3-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+<6>[    0.717797][   T90] hub 3-1:1.0: USB hub found
+<6>[    0.719189][   T90] hub 3-1:1.0: 8 ports detected
+<6>[    0.935900][   T74] ata2: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+<6>[    0.941514][   T74] ata2.00: ATAPI: MATSHITA DVD+/-RW UJ8FB, 1.02, max UDMA/100
+<6>[    0.942343][   T74] ata2.00: Features: Dev-Attention HIPM DIPM
+<6>[    0.949416][   T74] ata2.00: configured for UDMA/100
+<5>[    0.971001][   T66] scsi 1:0:0:0: CD-ROM            MATSHITA DVD+-RW UJ8FB    1.02 PQ: 0 ANSI: 5
+<6>[    0.984586][   T97] usb 1-1.5: new high-speed USB device number 3 using ehci-pci
+<6>[    1.004539][   T90] usb 3-1.5: new full-speed USB device number 3 using ehci-pci
