@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Software implementations of x86 instructions that Skylake-family CPUs
- * (e.g. Whiskey Lake i5-8365U) lack: GFNI, AVX-VNNI, SHA-NI, 256-bit VAES and
- * VPCLMULQDQ, and AVX-IFMA.
+ * (e.g. Whiskey Lake i5-8365U) lack: GFNI, AVX-VNNI, SHA-NI, 256-bit VAES,
+ * 128/256-bit VPCLMULQDQ, and AVX-IFMA.
  *
  * Pure functions on byte vectors, with no kernel dependencies, so the same
  * file builds into the kernel and into a userspace test harness.
