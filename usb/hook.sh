@@ -218,7 +218,7 @@ RC
   # Conscrypt (and identical) APEX libcrypto: the APEX is signed, so patch a copy and bind it over the
   # original once apexd has activated every APEX (init.rc's "wait_for_prop apexd.status activated" is in
   # on post-fs-data, before zygote-start). See apex_patch.sh.
-  if [ -f $G/apex_patch.sh ] && [ "$(grep -c '^    wait_for_prop apexd.status activated$' /tmp/sysinit/hw/init.rc)" = 1 ]; then
+  if [ "${GBOS_DISABLE_APEX_PATCH:-1}" != 1 ] && [ -f $G/apex_patch.sh ] && [ "$(grep -c '^    wait_for_prop apexd.status activated$' /tmp/sysinit/hw/init.rc)" = 1 ]; then
     sed -i 's#^    wait_for_prop apexd.status activated$#&\n    exec u:r:shell:s0 root root -- /system/bin/sh /postinstall/gbos/apex_patch.sh#' /tmp/sysinit/hw/init.rc \
       && log "hook: init.rc runs apex_patch.sh after APEX activation"
   else
@@ -352,8 +352,8 @@ for p in system:/new/system/lib64/libz.so:371f70d6a9392327cb36838d0cbc7af7388d16
   n=${p%%:*}; r=${p#*:}; t=${r%%:*}; h=${r#*:}
   if grep -q " $t " /proc/mounts; then
     log "hook: $n libz already patched (early_patch.sh)"
-  elif [ -f $G/patched/$n.libz.so ] && [ "$(sha256sum $t | cut -d' ' -f1)" = "$h" ]; then
-    mount --bind $G/patched/$n.libz.so $t && log "hook: patched $n libz (scalar adler32) active"
+  elif [ "${GBOS_PATCHED_LIBS_READY:-0}" = 1 ] && [ -f "$GBOS_PATCH_ROOT/$n.libz.so" ] && [ "$(sha256sum $t | cut -d' ' -f1)" = "$h" ]; then
+    mount --bind $GBOS_PATCH_ROOT/$n.libz.so $t && log "hook: patched $n libz (scalar adler32) active"
   else
     log "hook: $n libz NOT patched (missing patch or unexpected original)"
   fi
@@ -365,8 +365,8 @@ for p in system:/new/system/lib64/libcrypto.so:0ee96c7e0cb1ffca5520d2eaca02b4fa2
   n=${p%%:*}; r=${p#*:}; t=${r%%:*}; h=${r#*:}
   if grep -q " $t " /proc/mounts; then
     log "hook: $n libcrypto already patched (early_patch.sh)"
-  elif [ -f $G/patched/$n.libcrypto.so ] && [ "$(sha256sum $t | cut -d' ' -f1)" = "$h" ]; then
-    mount --bind $G/patched/$n.libcrypto.so $t && log "hook: patched $n libcrypto (scalar SHA) active"
+  elif [ "${GBOS_PATCHED_LIBS_READY:-0}" = 1 ] && [ -f "$GBOS_PATCH_ROOT/$n.libcrypto.so" ] && [ "$(sha256sum $t | cut -d' ' -f1)" = "$h" ]; then
+    mount --bind $GBOS_PATCH_ROOT/$n.libcrypto.so $t && log "hook: patched $n libcrypto (scalar SHA) active"
   else
     log "hook: $n libcrypto NOT patched (missing patch or unexpected original)"
   fi
