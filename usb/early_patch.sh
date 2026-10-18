@@ -3,8 +3,8 @@
 # ~3.7M emulated instructions, ~2 s of boot, all before hook.sh gets to bind the patched libraries. So bind them
 # first: this wraps chroot (dmctl's only external command) and does it once, just before the first call.
 # Fail-safe: if this never fires, hook.sh does the same binds later. Both are hash-gated on the exact originals.
-# TEMPORARY BOOT DIAGNOSTIC: leave original Android libraries in place.
-GBOS_DISABLE_PATCHED_LIBS=1
+# Let hook.sh apply the hash-verified scalar libz/libcrypto replacements. The ISA emulator
+# remains responsible for unsupported instructions before Android's root is mounted.
 gbos_early_patch() { :; }
 chroot() {
   if [ -z "$GBOS_EARLY_DONE" ] && [ "$1" = /new ]; then
