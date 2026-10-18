@@ -6,7 +6,7 @@
 Both take (state=rdi, data=rsi, nblocks=rdx); the scalar one is never called directly in this
 build, and every SHA-NI instruction in the binary lives inside the shaext function.
 """
-import os, struct, sys
+import hashlib, os, struct, sys
 
 SHAEXT = 0x28e880   # sha256 block fn using sha256rnds2 (entry: lea K-table(%rip), %rcx)
 SCALAR = 0x28d700   # same-signature scalar fn (entry: mov %rsp,%rax; push %rbx)
@@ -27,6 +27,7 @@ def v2o(data, va):
 def main():
     src, dst = sys.argv[1:3]
     d = bytearray(open(src, 'rb').read())
+    original_sha256 = hashlib.sha256(d).hexdigest()
     a, b = v2o(d, SHAEXT), v2o(d, SCALAR)
     assert d[a:a + 3] == EXPECT_SHAEXT, d[a:a + 8].hex()
     assert d[b:b + 5] == EXPECT_SCALAR, d[b:b + 8].hex()
@@ -34,6 +35,9 @@ def main():
     d[a:a + 5] = b'\xe9' + struct.pack('<i', rel)
     open(dst, 'wb').write(d)
     os.chmod(dst, 0o755)  # init must remain executable when packaged into the ext4 sidecar
+    with open(dst + '.orig.sha256', 'w', encoding='ascii') as f:
+        f.write(original_sha256 + '\\n')
+    print('original sha256 %s' % original_sha256)
     print('patched %#x -> jmp %#x (file off %#x)' % (SHAEXT, SCALAR, a))
 
 
