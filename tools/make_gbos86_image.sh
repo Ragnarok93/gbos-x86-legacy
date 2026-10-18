@@ -70,7 +70,7 @@ for f in system.libz.so vendor.libz.so system.libcrypto.so vendor.libcrypto.so; 
 done
 docker run --rm --platform linux/amd64 -v "$STAGE":/o alpine:latest sh -c '
 set -eu
-apk add -q e2fsprogs >/dev/null
+apk add -q e2fsprogs e2fsprogs-extra >/dev/null
 img=/o/gbos/gbos/patched-libs.img
 truncate -s 16M "$img"
 mke2fs -q -t ext4 -F -d /o/patched-libs-root "$img"
