@@ -34,14 +34,18 @@ gbos_early_patch() {
   # sidecar; never execute a replacement directly from the FAT USB filesystem.
   INIT_SRC=$GBOS_PATCH_ROOT/init
   INIT_DST=/new/system/bin/init
-  if [ -x "$INIT_SRC" ] && [ -x "$INIT_DST" ]; then
+  EXPECTED_INIT_SHA=$(cat "$GBOS_PATCH_ROOT/init.orig.sha256" 2>/dev/null | tr -d '\\r\\n')
+  ACTUAL_INIT_SHA=$(sha256sum "$INIT_DST" 2>/dev/null | cut -d' ' -f1)
+  if [ -x "$INIT_SRC" ] && [ -x "$INIT_DST" ] &&
+     [ "${#EXPECTED_INIT_SHA}" = 64 ] &&
+     [ "$EXPECTED_INIT_SHA" = "$ACTUAL_INIT_SHA" ]; then
     if mount --bind "$INIT_SRC" "$INIT_DST"; then
-      log "early: init SHA-NI SHA-256 path redirected to scalar implementation"
+      log "early: hash-matched init SHA-NI SHA-256 path redirected to scalar implementation"
     else
       log "early: init overlay FAILED; stock init remains active"
     fi
   else
-    log "early: patched init missing or stock init unavailable; using stock init"
+    log "early: patched init skipped (missing manifest or stock init SHA-256 mismatch)"
   fi
 
   # The init overlay is separate from optional library overlays: disabling the
