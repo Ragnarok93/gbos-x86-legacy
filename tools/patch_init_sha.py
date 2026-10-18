@@ -6,7 +6,7 @@
 Both take (state=rdi, data=rsi, nblocks=rdx); the scalar one is never called directly in this
 build, and every SHA-NI instruction in the binary lives inside the shaext function.
 """
-import struct, sys
+import os, struct, sys
 
 SHAEXT = 0x28e880   # sha256 block fn using sha256rnds2 (entry: lea K-table(%rip), %rcx)
 SCALAR = 0x28d700   # same-signature scalar fn (entry: mov %rsp,%rax; push %rbx)
@@ -33,6 +33,7 @@ def main():
     rel = SCALAR - (SHAEXT + 5)
     d[a:a + 5] = b'\xe9' + struct.pack('<i', rel)
     open(dst, 'wb').write(d)
+    os.chmod(dst, 0o755)  # init must remain executable when packaged into the ext4 sidecar
     print('patched %#x -> jmp %#x (file off %#x)' % (SHAEXT, SCALAR, a))
 
 
