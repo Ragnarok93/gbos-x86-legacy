@@ -62,9 +62,9 @@ cp /build/out/arch/x86/boot/bzImage /host/usb/out/BOOTX64.EFI
 rm -rf /host/usb/modules/lib/modules/*
 cp -a /build/modroot_all/lib/modules/. /host/usb/modules/lib/modules/
 {
-  printf 'kernel_release=%s\\n' "$KVER"
-  printf 'stage0_sha256=%s\\n' "$(sha256sum /host/usb/stage0_init.sh | cut -d' ' -f1)"
-  printf 'config_sha256=%s\\n' "$(sha256sum /host/kernel/configure_whl.py | cut -d' ' -f1)"
-  printf 'efi_sha256=%s\\n' "$(sha256sum /host/usb/out/BOOTX64.EFI | cut -d' ' -f1)"
+  printf 'kernel_release=%s\n' "$KVER"
+  printf 'stage0_sha256=%s\n' "$(sha256sum /host/usb/stage0_init.sh | cut -d' ' -f1)"
+  printf 'config_sha256=%s\n' "$(sha256sum /host/kernel/configure_whl.py | cut -d' ' -f1)"
+  printf 'efi_sha256=%s\n' "$(sha256sum /host/usb/out/BOOTX64.EFI | cut -d' ' -f1)"
 } > /host/usb/out/kernel-build.manifest
 echo "Wrote /host/usb/out/BOOTX64.EFI and matching modules for $KVER"
