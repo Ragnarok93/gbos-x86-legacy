@@ -27,11 +27,12 @@ PATCHED_INIT_SHA=$PATCHED_INIT.orig.sha256
   echo "Regenerate both with: python3 tools/patch_init_sha.py <matching stock /system/bin/init> $PATCHED_INIT" >&2
   exit 1
 }
-case "$(cat "$PATCHED_INIT_SHA")" in
+INIT_HASH=$(tr -d '\r\n' < "$PATCHED_INIT_SHA")
+case "$INIT_HASH" in
   *[!0-9a-f]*|'') echo "invalid init source-hash manifest: $PATCHED_INIT_SHA" >&2; exit 1 ;;
 esac
-[ "$(wc -c < "$PATCHED_INIT_SHA")" -eq 65 ] || {
-  echo "init source-hash manifest must contain exactly 64 hex digits and a newline" >&2; exit 1;
+[ "${#INIT_HASH}" -eq 64 ] && [ "$(wc -c < "$PATCHED_INIT_SHA")" -le 66 ] || {
+  echo "init source-hash manifest must contain exactly 64 hex digits" >&2; exit 1;
 }
 
 # Never build an image from a stale EFI or a module tree from another kernel build.
