@@ -1,0 +1,23 @@
+Panic#1 Part1
+<4>[   82.055359][    T1] Call Trace:
+<4>[   82.055361][    T1]  <TASK>
+<4>[   82.055363][    T1]  vpanic+0xec/0x2d0
+<4>[   82.055379][    T1]  panic+0x4a/0x50
+<4>[   82.055382][    T1]  ? blocking_notifier_call_chain+0xd1/0xf0
+<4>[   82.055386][    T1]  do_exit+0x863/0xa10
+<4>[   82.055390][    T1]  do_group_exit+0x8d/0xa0
+<4>[   82.055394][    T1]  __x64_sys_exit_group+0x12/0x20
+<4>[   82.055397][    T1]  x64_sys_call+0x2aaa/0x2ac0
+<4>[   82.055400][    T1]  do_syscall_64+0x61/0xf10
+<4>[   82.055406][    T1]  ? arch_exit_to_user_mode_prepare+0x9/0xb0
+<4>[   82.055410][    T1]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+<4>[   82.055413][    T1] RIP: 0033:0x7efe05097797
+<4>[   82.055416][    T1] Code: 44 00 00 b8 22 01 00 00 0f 05 48 3d 01 f0 ff ff 73 01 c3 89 c7 e9 49 b3 05 00 66 0f 1f 84 00 00 00 00 00 b8 e7 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 89 c7 e9 29 b3 05 00 66 0f 1f 84 00 00
+<4>[   82.055420][    T1] RSP: 002b:00007ffd5d9e6e38 EFLAGS: 00000202 ORIG_RAX: 00000000000000e7
+<4>[   82.055424][    T1] RAX: ffffffffffffffda RBX: 00007ffd5d9e9f7a RCX: 00007efe05097797
+<4>[   82.055426][    T1] RDX: 0000000000000001 RSI: 00007efe0500ad2b RDI: 0000000000000001
+<4>[   82.055429][    T1] RBP: 00007ffd5d9e6f10 R08: ffffffffffffffff R09: 00007efe05003116
+<4>[   82.055431][    T1] R10: 0000000100000000 R11: 0000000000000202 R12: 00007efe04fa0010
+<4>[   82.055433][    T1] R13: 0000000000000012 R14: 00007efe0525e100 R15: 00007efe0525e190
+<4>[   82.055437][    T1]  </TASK>
+<0>[   82.055477][    T1] Kernel Offset: 0x26000000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)

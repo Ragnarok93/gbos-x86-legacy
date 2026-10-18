@@ -1,0 +1,19 @@
+Panic#1 Part8
+<6>[   50.443718][  T354] Console: switching to colour frame buffer device 170x48
+<6>[   50.464076][  T354] i915 0000:00:02.0: [drm] fb0: i915drmfb frame buffer device
+<4>[   51.008881][  T354] cfg80211: no extended symbol version for inet_csk_get_port
+<5>[   51.036523][  T354] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+<5>[   51.036984][  T354] Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+<5>[   51.037252][  T354] Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+<6>[   51.104917][  T354] iwlwifi 0000:03:00.0: enabling device (0000 -> 0002)
+<4>[   51.105226][  T354] iwlwifi 0000:03:00.0: can't disable ASPM; OS doesn't have ASPM control
+<6>[   51.112195][  T354] iwlwifi 0000:03:00.0: Detected crf-id 0xa5a5a5a1, cnv-id 0xa5a5a5a1 wfpm id 0xa5a5a5a1
+<6>[   51.112307][  T354] iwlwifi 0000:03:00.0: PCI dev 088e/4460, rev=0xb0, rfid=0xd55555d5
+<6>[   51.112336][  T354] iwlwifi 0000:03:00.0: Detected Intel(R) Centrino(R) Advanced-N 6235 AGN
+<6>[   51.115798][  T354] pps_core: LinuxPPS API ver. 1 registered
+<6>[   51.115826][  T354] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+<6>[   51.133326][  T354] PTP clock support registered
+<6>[   51.183736][   T62] iwlwifi 0000:03:00.0: loaded firmware version 18.168.6.1 6000g2b-6.ucode op_mode iwldvm
+<6>[   51.204116][  T354] e1000e: Intel(R) PRO/1000 Network Driver
+<6>[   51.204152][  T354] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+<6>[   51.204347][  T354] e1000e 0000:00:19.0: Interrupt Throttling Rate (ints/sec) set to dynamic conservative mode

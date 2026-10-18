@@ -1,0 +1,14 @@
+Panic#1 Part2
+<14>[   25.584565][    T1] selinux: /system/etc/selinux/plat_file_contexts:  line 548 has unsupported escaped character d (0x64) for literal matching, continuing using regex
+<14>[   25.585133][    T1] selinux: /system/etc/selinux/plat_file_contexts:  line 549 has unsupported escaped character d (0x64) for literal matching, continuing using regex
+<14>[   25.586283][    T1] selinux: SELinux: Loaded file context from:
+<14>[   25.586760][    T1] selinux: 		/system/etc/selinux/plat_file_contexts
+<14>[   25.587224][    T1] selinux: 		/system_ext/etc/selinux/system_ext_file_contexts
+<14>[   25.587686][    T1] selinux: 		/product/etc/selinux/product_file_contexts
+<14>[   25.588145][    T1] selinux: 		/vendor/etc/selinux/vendor_file_contexts
+<14>[   25.588638][    T1] selinux: 		/odm/etc/selinux/odm_file_contexts
+<5>[   25.590862][   T44] audit: type=1400 audit(1792310182.768:5): avc:  denied  { read } for  pid=1 comm="init" name="system.libz.so" dev="sdb2" ino=92 scontext=u:r:init:s0 tcontext=u:object_r:vfat:s0 tclass=file permissive=0
+<0>[   25.591070][    T1] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000100
+<4>[   25.591073][    T1] CPU: 0 UID: 0 PID: 1 Comm: init Tainted: G S                  6.18.21-gbos-whl #6 PREEMPT  9b1d13d33b14529b0da7c77ab971ce45ba12368f
+<4>[   25.591076][    T1] Tainted: [S]=CPU_OUT_OF_SPEC
+<4>[   25.591077][    T1] Hardware name: Dell Inc. Latitude E6540/0RHT9R, BIOS A27 06/13/2019
