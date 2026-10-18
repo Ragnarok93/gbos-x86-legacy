@@ -1,5 +1,12 @@
 # gbos-x86 handoff
 
+## 2026-10-18: Boot stalls during SELinux policy load with stock crypto libraries
+
+- The new `Logs/boot-2/kmsg.log` no longer shows the previous `system.libz.so` vfat-label AVC or PID-1 kernel panic. It reaches `init: Loading SELinux policy` and stops logging there.
+- The last ISA-emulator counter reports `kind=16`, which maps to `K_SHA256MSG2` in `kernel/isa_emu_patch/isa_emu.c`. With all library patches disabled, init is still hitting the SHA-NI emulator path; this is consistent with a severe userspace startup stall.
+- Fix attempt: `tools/make_gbos86_image.sh` now packages the four system/vendor libz/libcrypto replacements in `patched-libs.img`, a small ext4 image with explicit `security.selinux` xattrs (`system_lib_file` for system libraries and `vendor_file` for vendor libraries). `early_patch.sh` mounts this image on loop15 and binds only hash-matched replacements. `hook.sh` no longer falls back to direct FAT library binds. The Conscrypt APEX overlay is deferred (`GBOS_DISABLE_APEX_PATCH=1`) to avoid reintroducing a FAT-labeled shared library.
+- This is a code-level fix attempt; the image build and physical E6540 boot still require verification. If the ext4 sidecar build fails, preserve the output and fix the packaging step before flashing.
+
 ## 2026-10-18: E6540 boot-2 panic — disable FAT-backed performance library overlays by default
 
 - `Logs/boot-2/pstore-prev` records the actual panic on kernel `6.18.21-gbos-whl #6`: SELinux switches from permissive to enforcing, then denies PID 1 reading the bind-mounted `system.libz.so` from `sdb2` (`tcontext=u:object_r:vfat:s0`, `permissive=0`). The kernel panics with `Attempted to kill init! exitcode=0x00000100`.
