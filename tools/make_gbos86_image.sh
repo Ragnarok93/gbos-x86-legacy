@@ -17,6 +17,15 @@ U=$ROOT/usb
 P=$ROOT/lapis/parts
 NAME=gbOS86-$(date +%Y%m%d)
 
+# This locally generated binary has its SHA-NI SHA-256 entry redirected to the
+# scalar implementation by tools/patch_init_sha.py. It is intentionally not
+# tracked because it is derived from Google's proprietary system image.
+PATCHED_INIT=$ROOT/lapis/patched/init
+[ -s "$PATCHED_INIT" ] && [ -x "$PATCHED_INIT" ] || {
+  echo "missing executable $PATCHED_INIT; create it with tools/patch_init_sha.py from the matching extracted system init" >&2
+  exit 1
+}
+
 # Never build an image from a stale EFI or a module tree from another kernel build.
 MANIFEST=$U/out/kernel-build.manifest
 [ -f "$MANIFEST" ] || { echo "missing $MANIFEST; run tools/rebuild_kernel_efi.sh first" >&2; exit 1; }
@@ -68,12 +77,16 @@ for f in system.libz.so vendor.libz.so system.libcrypto.so vendor.libcrypto.so; 
   [ -s "$U/patched/$f" ] || { echo "missing patched library: $U/patched/$f" >&2; exit 1; }
   cp "$U/patched/$f" "$PATCHROOT/$f"
 done
+cp "$PATCHED_INIT" "$PATCHROOT/init"
+chmod 0755 "$PATCHROOT/init"
 docker run --rm --platform linux/amd64 -v "$STAGE":/o alpine:latest sh -c '
 set -eu
 apk add -q e2fsprogs e2fsprogs-extra >/dev/null
 img=/o/gbos/gbos/patched-libs.img
-truncate -s 16M "$img"
+truncate -s 32M "$img"
 mke2fs -q -t ext4 -F -d /o/patched-libs-root "$img"
+debugfs -w -R "ea_set /init security.selinux u:object_r:init_exec:s0" "$img" >/dev/null
+debugfs -R "ea_list /init" "$img" | grep -F "init_exec" >/dev/null
 debugfs -w -R "ea_set /system.libz.so security.selinux u:object_r:system_lib_file:s0" "$img" >/dev/null
 debugfs -w -R "ea_set /system.libcrypto.so security.selinux u:object_r:system_lib_file:s0" "$img" >/dev/null
 debugfs -w -R "ea_set /vendor.libz.so security.selinux u:object_r:vendor_file:s0" "$img" >/dev/null
