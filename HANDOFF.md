@@ -1,5 +1,12 @@
 # gbos-x86 handoff
 
+## 2026-10-18: Dell Latitude E6540 (Haswell) bring-up fixes — not yet hardware-verified
+
+- Stage0 now mounts the packaged module tree matching `uname -r` before its first `modprobe i915`, even when `HWDETECT=0`. That option disables modalias coldplug, not the need for the correct kernel modules. `hwdetect.sh` avoids stacking the same bind mount.
+- The observed i915 load error names the Linux hwmon registration/unregistration API. `kernel/configure_whl.py` now forces `CONFIG_HWMON=y` and checks it after `olddefconfig`, keeping the API provider built into vmlinux rather than relying on the packaged module dependency chain.
+- Restored the intended early hash-gated scalar `libz` and `libcrypto` binds in `early_patch.sh` before stage0's first `dmctl`; previously the function was a no-op, so the comments promised behavior that never happened. The replacements are still only mounted when the original file hash matches.
+- Updated the graphics option comment for both Haswell HD 4600 (E6540) and Whiskey Lake UHD 620 (Latitude 5300). Changes are on branch `fix/e6540-haswell-boot`; rebuild the kernel and matching module tree, then test on the E6540. No real-hardware boot has yet verified these fixes.
+
 ## Goal
 Run the Googlebook `lapis` Android userspace on an i5-8365U (Whiskey Lake). That CPU lacks GFNI, AVX-VNNI,
 SHA-NI, 256-bit VAES/VPCLMULQDQ, AVX-IFMA and AVX-512; the lapis binaries use them.
