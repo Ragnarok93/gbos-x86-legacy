@@ -1,0 +1,21 @@
+# Module names needed before stage0 can mount the GBOS volume, plus filesystems and
+# block-device support needed to mount Android images after the volume is found.
+# build_generic_stage2.sh resolves and copies their full dependency closure.
+xhci_pci
+xhci_hcd
+ehci_pci
+ehci_hcd
+usb_storage
+uas
+scsi_mod
+sd_mod
+vfat
+fat
+nls_cp437
+nls_iso8859_1
+loop
+erofs
+dm_mod
+sdhci_pci
+mmc_block
+mmc_core
