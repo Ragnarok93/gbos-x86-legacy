@@ -1,5 +1,14 @@
 # gbos-x86 handoff
 
+## 2026-10-18: Latest E6540 logs — init SHA-NI path is the leading stall hypothesis
+
+- Latest uploaded evidence is in `docs/boot-2/`. The saved pstore records include earlier boots that panic when PID 1 is denied access to FAT-backed `system.libz.so` (`tcontext=u:object_r:vfat:s0`). Do not confuse those older panic records with the later `kmsg.log`, which shows `patched-libs.img` mounted from ext4 and all four system/vendor library replacements applied.
+- The later `kmsg.log` still ends while SELinux policy is being loaded; the uploaded `kvmtrace.txt` is empty and the latest command line does not enable `isaemuprofile`. Therefore this log does not prove whether second-stage init is frozen or merely too slow, and it does not independently attribute the stall to one instruction.
+- Leading hypothesis: Android `init` itself still contains a SHA-NI SHA-256 routine. The system/vendor `libcrypto` overlays do not patch that code. The existing `tools/patch_init_sha.py` has checked entry signatures and redirects that init routine to its scalar equivalent.
+- Fix attempt on `fix/e6540-selinux-kmsg-capture`: the image builder now extracts `/system/bin/init` from the exact `lapis/parts/system_a.img` with `fsck.erofs`, runs the checked patcher, and records the original SHA-256. It packages the patched binary and manifest in `patched-libs.img` with `u:object_r:init_exec:s0`; `usb/early_patch.sh` verifies the stock init hash before binding the overlay. This init overlay remains active even if the optional libz/libcrypto overlays are disabled.
+- Verification still required: build the image, boot USB option 1 (live only), and inspect the next `kmsg.log`, `kmsg-tail.log`, `logcat.txt`, and any pstore record. The patcher will fail closed if the current init prologue differs from the expected binary. No physical boot success is claimed yet.
+
+
 ## 2026-10-18: Boot stalls during SELinux policy load with stock crypto libraries
 
 - The new `Logs/boot-2/kmsg.log` no longer shows the previous `system.libz.so` vfat-label AVC or PID-1 kernel panic. It reaches `init: Loading SELinux policy` and stops logging there.
