@@ -3,7 +3,7 @@
 ## 2026-10-18: E6540 boot-2 panic — disable FAT-backed performance library overlays by default
 
 - `Logs/boot-2/pstore-prev` records the actual panic on kernel `6.18.21-gbos-whl #6`: SELinux switches from permissive to enforcing, then denies PID 1 reading the bind-mounted `system.libz.so` from `sdb2` (`tcontext=u:object_r:vfat:s0`, `permissive=0`). The kernel panics with `Attempted to kill init! exitcode=0x00000100`.
-- The libz/libcrypto replacements are performance-only; the kernel ISA emulator already handles their unsupported instructions. `usb/gbos.cfg` now defaults `GBOS_DISABLE_PATCHED_LIBS=1`; both `early_patch.sh` and the existing guard in `hook.sh` honor it. This leaves the stock EROFS libraries in place for early init and avoids this specific fatal SELinux denial without weakening SELinux.
+- The libz/libcrypto replacements are performance-only; the kernel ISA emulator already handles their unsupported instructions. `usb/gbos.cfg` now defaults `GBOS_DISABLE_PATCHED_LIBS=1`; `early_patch.sh`, the system/vendor libz/libcrypto block, and the Conscrypt APEX patch injection all honor it. This leaves stock EROFS libraries in place for early init and avoids the known fatal denial without weakening SELinux.
 - Rebuild the image with `tools/make_gbos86_image.sh` (no kernel rebuild needed), flash the new image, and test. Not yet hardware-verified; later hook overlays sourced from FAT may reveal additional SELinux labeling issues, which should be fixed narrowly rather than disabling SELinux globally.
 
 ## 2026-10-18: Complete VEX.128 emulation coverage for VPCLMULQDQ
