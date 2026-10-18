@@ -14,7 +14,11 @@ $M olddefconfig >/dev/null
 /build/src/scripts/config --file /build/out/.config --set-str CMDLINE "$(cat /k/isa_emu_patch/generic_cmdline.txt)"
 $M olddefconfig >/dev/null
 python3 /k/configure_whl.py --check .config
-$M -j${JOBS:-$(nproc)} bzImage modules 2>&1 | tail -n 30
+if ! $M -j${JOBS:-$(nproc)} bzImage modules > /build/out/build-generic.log 2>&1; then
+  tail -n 80 /build/out/build-generic.log
+  exit 1
+fi
+tail -n 30 /build/out/build-generic.log
 rm -rf /build/modroot_all
 $M modules_install INSTALL_MOD_PATH=/build/modroot_all INSTALL_MOD_STRIP=1 >/dev/null 2>&1
 echo "modules: $(find /build/modroot_all -name '*.ko' | wc -l), $(du -sh /build/modroot_all | cut -f1)"
