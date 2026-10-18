@@ -5,10 +5,6 @@ GBOS_PATCH_ROOT=/gbos-patched
 GBOS_PATCHED_LIBS_READY=0
 
 gbos_mount_patched_libs() {
-  [ "${GBOS_DISABLE_PATCHED_LIBS:-0}" = 1 ] && {
-    log "early: patched library replacements disabled by config"
-    return 1
-  }
   [ -f "$G/patched-libs.img" ] || {
     log "early: patched-libs.img missing; using stock libraries"
     return 1
@@ -31,6 +27,30 @@ gbos_mount_patched_libs() {
 
 gbos_early_patch() {
   gbos_mount_patched_libs || return 0
+
+  # init itself contains a SHA-NI SHA-256 routine. The E6540 lacks SHA-NI, so
+  # emulating every instruction in init while it loads SELinux policy can take
+  # minutes. Use the verified scalar-routed init binary from the labeled ext4
+  # sidecar; never execute a replacement directly from the FAT USB filesystem.
+  INIT_SRC=$GBOS_PATCH_ROOT/init
+  INIT_DST=/new/system/bin/init
+  if [ -x "$INIT_SRC" ] && [ -x "$INIT_DST" ]; then
+    if mount --bind "$INIT_SRC" "$INIT_DST"; then
+      log "early: init SHA-NI SHA-256 path redirected to scalar implementation"
+    else
+      log "early: init overlay FAILED; stock init remains active"
+    fi
+  else
+    log "early: patched init missing or stock init unavailable; using stock init"
+  fi
+
+  # The init overlay is separate from optional library overlays: disabling the
+  # libz/libcrypto performance patches must not re-enable init's SHA-NI hot path.
+  [ "${GBOS_DISABLE_PATCHED_LIBS:-0}" = 1 ] && {
+    log "early: patched libz/libcrypto replacements disabled by config"
+    return 0
+  }
+
   for p in system:/new/system/lib64/libz.so:371f70d6a9392327cb36838d0cbc7af7388d1689c25d91cd343af8e58433683b vendor:/new/vendor/lib64/libz.so:e45aecb65cbb40f0c3070b05aa9d974076d401ed6f2aff3081af26a14e812590; do
     n=${p%%:*}; r=${p#*:}; t=${r%%:*}; h=${r#*:}; src="$GBOS_PATCH_ROOT/$n.libz.so"
     if grep -q " $t " /proc/mounts; then
