@@ -21,9 +21,17 @@ NAME=gbOS86-$(date +%Y%m%d)
 # scalar implementation by tools/patch_init_sha.py. It is intentionally not
 # tracked because it is derived from Google's proprietary system image.
 PATCHED_INIT=$ROOT/lapis/patched/init
-[ -s "$PATCHED_INIT" ] || {
-  echo "missing executable $PATCHED_INIT; create it with tools/patch_init_sha.py from the matching extracted system init" >&2
+PATCHED_INIT_SHA=$PATCHED_INIT.orig.sha256
+[ -s "$PATCHED_INIT" ] && [ -s "$PATCHED_INIT_SHA" ] || {
+  echo "missing patched init or source-hash manifest ($PATCHED_INIT and $PATCHED_INIT_SHA)." >&2
+  echo "Regenerate both with: python3 tools/patch_init_sha.py <matching stock /system/bin/init> $PATCHED_INIT" >&2
   exit 1
+}
+case "$(cat "$PATCHED_INIT_SHA")" in
+  *[!0-9a-f]*|'') echo "invalid init source-hash manifest: $PATCHED_INIT_SHA" >&2; exit 1 ;;
+esac
+[ "$(wc -c < "$PATCHED_INIT_SHA")" -eq 65 ] || {
+  echo "init source-hash manifest must contain exactly 64 hex digits and a newline" >&2; exit 1;
 }
 
 # Never build an image from a stale EFI or a module tree from another kernel build.
@@ -78,6 +86,7 @@ for f in system.libz.so vendor.libz.so system.libcrypto.so vendor.libcrypto.so; 
   cp "$U/patched/$f" "$PATCHROOT/$f"
 done
 cp "$PATCHED_INIT" "$PATCHROOT/init"
+cp "$PATCHED_INIT_SHA" "$PATCHROOT/init.orig.sha256"
 chmod 0755 "$PATCHROOT/init"
 docker run --rm --platform linux/amd64 -v "$STAGE":/o alpine:latest sh -c '
 set -eu
