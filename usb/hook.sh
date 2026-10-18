@@ -372,5 +372,5 @@ for p in system:/new/system/lib64/libcrypto.so:0ee96c7e0cb1ffca5520d2eaca02b4fa2
   fi
 done
 else
-  log "hook: patched library replacements disabled for boot diagnostic"
+  log "hook: patched library replacements disabled (FAT vfat labels; using stock libraries + ISA emulation)"
 fi
