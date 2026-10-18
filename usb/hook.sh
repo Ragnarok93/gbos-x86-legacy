@@ -82,7 +82,9 @@ service gbos_kmsg_capture /system/bin/logcat -b kernel -v threadtime -f /postins
     seclabel u:r:shell:s0
     disabled
 
-on post-fs
+# Start as soon as second-stage init parses rc files, rather than waiting for post-fs.
+# This gives us the earliest possible userspace-side capture after SELinux policy setup.
+on early-init
     start gbos_kmsg_capture
 
 # Rotate at 1 MB: on this stick, data written past ~4 MB of a file that stays open never reaches
