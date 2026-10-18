@@ -1,4 +1,10 @@
-# gbos-x86 handoff
+## 2026-10-18: Enable ISA-emulator attribution for the next E6540 diagnostic boot
+
+- The previous capture is insufficient to distinguish a slow init from a stall: `docs/boot-2/kmsg.log` ends during SELinux policy loading, while `kmsg-tail.log` and Android logcat depend on later init stages.
+- Added `isaemuprofile` to `kernel/isa_emu_patch/generic_cmdline.txt`. With the current emulator implementation, every million emulated SIMD instructions triggers a kernel progress line and a top-24 `isa_emu_prof:` report containing trap counts, instruction kind, executable file offset, and mapped path. This should show whether init is still making progress and which code offsets dominate. Profiling is intentionally diagnostic-only and adds overhead.
+- Hardened `build_generic.sh` to fail clearly if the Clang toolchain or kernel source tree is missing, and to refuse a build if `isaemuprofile` is not present in the final `CONFIG_CMDLINE`. The generic build must then be followed by `tools/rebuild_kernel_efi.sh` stage 2 to embed the current stage0 and export a matching EFI and modules tree.
+- The current WSL Docker volume `gbos-ksrc` was observed empty (no `/build/src`, `/build/out`, or `/build/inputs/clang-r584948c`), so **no new EFI has yet been built or deployed**. Restore the build volume/toolchain before claiming the diagnostic patch is on the laptop. After rebuilding, verify the build manifest and confirm the running boot's command line/log contains `isaemuprofile` and `isa_emu_prof:` before interpreting the next live USB boot.
+- Safety/acceptance: use USB live boot only (menu option 1); do not install to or write to the internal SSD. No hardware verification is claimed yet.
 
 ## 2026-10-18: Latest E6540 logs — init SHA-NI path is the leading stall hypothesis
 
