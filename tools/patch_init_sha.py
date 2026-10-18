@@ -36,7 +36,7 @@ def main():
     open(dst, 'wb').write(d)
     os.chmod(dst, 0o755)  # init must remain executable when packaged into the ext4 sidecar
     with open(dst + '.orig.sha256', 'w', encoding='ascii') as f:
-        f.write(original_sha256 + '\\n')
+        f.write(original_sha256 + '\n')
     print('original sha256 %s' % original_sha256)
     print('patched %#x -> jmp %#x (file off %#x)' % (SHAEXT, SCALAR, a))
 
