@@ -12,6 +12,9 @@ import sys
 
 OVERRIDES = {
     'LOCALVERSION': '"-gbos-whl"', 'LOCALVERSION_AUTO': 'n',
+    # Keep i915's hwmon API providers in vmlinux. This avoids runtime unresolved hwmon symbols
+    # if the packaged module tree is incomplete or its dependency metadata is stale.
+    'HWMON': 'y',
     # Gen9.5 graphics: xe.ko only supports Gen12+, so build i915.
     'DRM_I915': 'm', 'DRM_SIMPLEDRM': 'y', 'SYSFB_SIMPLEFB': 'y',
     # Let rebuilt modules use any export (GBRUNCH found the trimmed list too small).
@@ -110,7 +113,7 @@ _m('SND_SOC_SOF_PCI', 'SND_SOC_SOF_ACPI', 'SND_SOC_SOF_INTEL_COMMON', 'SND_SOC_S
    'SND_SOC_RT1015', 'SND_SOC_RT1015P', 'SND_SOC_TAS2562')
 
 # These must come out exactly as requested after olddefconfig.
-REQUIRED = ['DRM_I915', 'TRIM_UNUSED_KSYMS', 'MODULE_SIG_PROTECT', 'ANDROID_BINDER_IPC', 'BLK_DEV_NVME']
+REQUIRED = ['DRM_I915', 'TRIM_UNUSED_KSYMS', 'MODULE_SIG_PROTECT', 'ANDROID_BINDER_IPC', 'BLK_DEV_NVME', 'HWMON']
 
 
 def parse(text):
