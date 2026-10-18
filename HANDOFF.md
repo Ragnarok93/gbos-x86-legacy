@@ -1,5 +1,11 @@
 # gbos-x86 handoff
 
+## 2026-10-18: E6540 boot-2 panic — disable FAT-backed performance library overlays by default
+
+- `Logs/boot-2/pstore-prev` records the actual panic on kernel `6.18.21-gbos-whl #6`: SELinux switches from permissive to enforcing, then denies PID 1 reading the bind-mounted `system.libz.so` from `sdb2` (`tcontext=u:object_r:vfat:s0`, `permissive=0`). The kernel panics with `Attempted to kill init! exitcode=0x00000100`.
+- The libz/libcrypto replacements are performance-only; the kernel ISA emulator already handles their unsupported instructions. `usb/gbos.cfg` now defaults `GBOS_DISABLE_PATCHED_LIBS=1`; both `early_patch.sh` and the existing guard in `hook.sh` honor it. This leaves the stock EROFS libraries in place for early init and avoids this specific fatal SELinux denial without weakening SELinux.
+- Rebuild the image with `tools/make_gbos86_image.sh` (no kernel rebuild needed), flash the new image, and test. Not yet hardware-verified; later hook overlays sourced from FAT may reveal additional SELinux labeling issues, which should be fixed narrowly rather than disabling SELinux globally.
+
 ## 2026-10-18: Complete VEX.128 emulation coverage for VPCLMULQDQ
 
 - Audit found a concrete decoder gap: the #UD classifier required VEX.L=1 for VPCLMULQDQ, so valid VEX.128 (XMM) encodings were not emulated and could still SIGILL on Haswell. VPCLMULQDQ supports both 128-bit and 256-bit vector lengths. VAES, by contrast, uses VEX.256 (and newer EVEX.512) forms; there is no VEX.128 VAES instruction, so its VEX.L=1 guard is correct.
