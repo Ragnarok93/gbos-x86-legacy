@@ -36,7 +36,7 @@ gbos_early_patch() {
     if grep -q " $t " /proc/mounts; then
       log "early: $n libz already patched"
     elif [ -f "$src" ] && [ "$(sha256sum "$t" | cut -d' ' -f1)" = "$h" ]; then
-      mount --bind "$src" "$t" && log "early: patched $n libz (scalar adler32, SELinux label preserved)" \\
+      mount --bind "$src" "$t" && log "early: patched $n libz (scalar adler32, SELinux label preserved)" \
         || log "early: bind FAILED for $n libz"
     else
       log "early: $n libz NOT patched (image file missing or original hash mismatch)"
@@ -47,7 +47,7 @@ gbos_early_patch() {
     if grep -q " $t " /proc/mounts; then
       log "early: $n libcrypto already patched"
     elif [ -f "$src" ] && [ "$(sha256sum "$t" | cut -d' ' -f1)" = "$h" ]; then
-      mount --bind "$src" "$t" && log "early: patched $n libcrypto (scalar SHA, SELinux label preserved)" \\
+      mount --bind "$src" "$t" && log "early: patched $n libcrypto (scalar SHA, SELinux label preserved)" \
         || log "early: bind FAILED for $n libcrypto"
     else
       log "early: $n libcrypto NOT patched (image file missing or original hash mismatch)"
