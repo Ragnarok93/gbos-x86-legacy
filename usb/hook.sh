@@ -344,6 +344,7 @@ else
   log "hook: tracefs mount FAILED"
 fi
 
+if [ "${GBOS_DISABLE_PATCHED_LIBS:-0}" != 1 ]; then
 # libz: adler32_z's AVX-VNNI helper (vpdpwssd) traps on this CPU (~half of all emulated instructions).
 # The patched copies (tools/patch_libz_adler.py) make adler32_z always take its scalar path. Each is only
 # bind-mounted over the exact original it was made from.
@@ -370,3 +371,6 @@ for p in system:/new/system/lib64/libcrypto.so:0ee96c7e0cb1ffca5520d2eaca02b4fa2
     log "hook: $n libcrypto NOT patched (missing patch or unexpected original)"
   fi
 done
+else
+  log "hook: patched library replacements disabled for boot diagnostic"
+fi
