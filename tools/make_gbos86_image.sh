@@ -23,8 +23,7 @@ NAME=gbOS86-$(date +%Y%m%d)
 # Google's proprietary system image.
 PATCHED_INIT=$ROOT/lapis/patched/init
 PATCHED_INIT_SHA=$PATCHED_INIT.orig.sha256
-if [ ! -s "$PATCHED_INIT" ] || [ ! -s "$PATCHED_INIT_SHA" ]; then
-  [ -s "$P/system_a.img" ] || {
+[ -s "$P/system_a.img" ] || {
     echo "missing $P/system_a.img; fetch/extract the Google recovery partitions first" >&2
     exit 1
   }
@@ -40,8 +39,7 @@ if [ ! -s "$PATCHED_INIT" ] || [ ! -s "$PATCHED_INIT_SHA" ]; then
       [ -n "$stock" ] || { echo "fsck.erofs did not extract /system/bin/init" >&2; exit 1; }
       cp "$stock" /out/stock-init
     '
-  python3 "$ROOT/tools/patch_init_sha.py" "$INIT_EXTRACT/stock-init" "$PATCHED_INIT"
-fi
+python3 "$ROOT/tools/patch_init_sha.py" "$INIT_EXTRACT/stock-init" "$PATCHED_INIT"
 INIT_HASH=$(tr -d '\r\n' < "$PATCHED_INIT_SHA")
 case "$INIT_HASH" in
   *[!0-9a-f]*|'') echo "invalid init source-hash manifest: $PATCHED_INIT_SHA" >&2; exit 1 ;;
