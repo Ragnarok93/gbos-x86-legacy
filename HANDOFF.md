@@ -1,4 +1,19 @@
-# gbos-x86 handoff
+## 2026-10-18: Enable ISA-emulator attribution for the next E6540 diagnostic boot
+
+- The previous capture is insufficient to distinguish a slow init from a stall: `docs/boot-2/kmsg.log` ends during SELinux policy loading, while `kmsg-tail.log` and Android logcat depend on later init stages.
+- Added `isaemuprofile` to `kernel/isa_emu_patch/generic_cmdline.txt`. With the current emulator implementation, every million emulated SIMD instructions triggers a kernel progress line and a top-24 `isa_emu_prof:` report containing trap counts, instruction kind, executable file offset, and mapped path. This should show whether init is still making progress and which code offsets dominate. Profiling is intentionally diagnostic-only and adds overhead.
+- Hardened `build_generic.sh` to fail clearly if the Clang toolchain or kernel source tree is missing, and to refuse a build if `isaemuprofile` is not present in the final `CONFIG_CMDLINE`. The generic build must then be followed by `tools/rebuild_kernel_efi.sh` stage 2 to embed the current stage0 and export a matching EFI and modules tree.
+- The current WSL Docker volume `gbos-ksrc` was observed empty (no `/build/src`, `/build/out`, or `/build/inputs/clang-r584948c`), so **no new EFI has yet been built or deployed**. Restore the build volume/toolchain before claiming the diagnostic patch is on the laptop. After rebuilding, verify the build manifest and confirm the running boot's command line/log contains `isaemuprofile` and `isa_emu_prof:` before interpreting the next live USB boot.
+- Safety/acceptance: use USB live boot only (menu option 1); do not install to or write to the internal SSD. No hardware verification is claimed yet.
+
+## 2026-10-18: Latest E6540 logs — init SHA-NI path is the leading stall hypothesis
+
+- Latest uploaded evidence is in `docs/boot-2/`. The saved pstore records include earlier boots that panic when PID 1 is denied access to FAT-backed `system.libz.so` (`tcontext=u:object_r:vfat:s0`). Do not confuse those older panic records with the later `kmsg.log`, which shows `patched-libs.img` mounted from ext4 and all four system/vendor library replacements applied.
+- The later `kmsg.log` still ends while SELinux policy is being loaded; the uploaded `kvmtrace.txt` is empty and the latest command line does not enable `isaemuprofile`. Therefore this log does not prove whether second-stage init is frozen or merely too slow, and it does not independently attribute the stall to one instruction.
+- Leading hypothesis: Android `init` itself still contains a SHA-NI SHA-256 routine. The system/vendor `libcrypto` overlays do not patch that code. The existing `tools/patch_init_sha.py` has checked entry signatures and redirects that init routine to its scalar equivalent.
+- Fix attempt on `fix/e6540-selinux-kmsg-capture`: the image builder now extracts `/system/bin/init` from the exact `lapis/parts/system_a.img` with `fsck.erofs`, runs the checked patcher, and records the original SHA-256. It packages the patched binary and manifest in `patched-libs.img` with `u:object_r:init_exec:s0`; `usb/early_patch.sh` verifies the stock init hash before binding the overlay. This init overlay remains active even if the optional libz/libcrypto overlays are disabled.
+- Verification still required: build the image, boot USB option 1 (live only), and inspect the next `kmsg.log`, `kmsg-tail.log`, `logcat.txt`, and any pstore record. The patcher will fail closed if the current init prologue differs from the expected binary. No physical boot success is claimed yet.
+
 
 ## 2026-10-18: Boot stalls during SELinux policy load with stock crypto libraries
 

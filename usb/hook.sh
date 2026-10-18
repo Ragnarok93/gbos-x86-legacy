@@ -74,6 +74,19 @@ if mount --bind /gbos /new/postinstall; then
   # display hardware scales to the 1920x1080 panel, so everything looks smaller with stock density.
   case "$RESOLUTION" in [0-9]*x[0-9]*) WMSIZE=$RESOLUTION;; *) WMSIZE=reset;; esac
   cat > /tmp/sysinit/gbos.rc <<RC
+# stage0 runs in the kernel SELinux domain; policy enforcement can deny its writes to vfat.
+# Capture the kernel ring again from Android's logd under shell domain, into a separate file.
+service gbos_kmsg_capture /system/bin/logcat -b kernel -v threadtime -f /postinstall/gbos/logs/boot-$N/kmsg-tail.log
+    user root
+    group root log
+    seclabel u:r:shell:s0
+    disabled
+
+# Start as soon as second-stage init parses rc files, rather than waiting for post-fs.
+# This gives us the earliest possible userspace-side capture after SELinux policy setup.
+on early-init
+    start gbos_kmsg_capture
+
 # Rotate at 1 MB: on this stick, data written past ~4 MB of a file that stays open never reaches
 # the FAT cluster chain before power-off (fsck: "size ... should at most be 4046848"). Rotating
 # closes each file; logcat.txt is newest, then logcat.txt.1, .2, ...

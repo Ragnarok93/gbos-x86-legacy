@@ -3,10 +3,13 @@
 # generic Intel gen6+ laptop config -> bzImage + all modules -> stripped, depmod'ed trees:
 #   /build/modroot_all   every module (goes to usb/modules/ on the stick, loaded by usb/hwdetect.sh)
 # The stage0 initramfs keeps only the modules it already had (see build_generic_stage2.sh).
-set -e
+set -eu
 C=/build/inputs/clang-r584948c
-export PATH=$C/bin:$PATH LD_LIBRARY_PATH=$C/lib:$LD_LIBRARY_PATH
+[ -x "$C/bin/clang-22" ] || { echo "missing Clang toolchain: $C/bin/clang-22 (initialize gbos-ksrc first)" >&2; exit 1; }
+[ -f /build/src/Makefile ] || { echo "missing kernel source tree at /build/src (initialize gbos-ksrc first)" >&2; exit 1; }
+export PATH=$C/bin:$PATH LD_LIBRARY_PATH=$C/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 M="make -C /build/src O=/build/out ARCH=x86_64 LLVM=$C/bin/ CC=$C/bin/clang-22"
+mkdir -p /build/out
 cd /build/out
 python3 /k/configure_whl.py --generic .config .config.new && cp .config.new .config
 $M olddefconfig >/dev/null
@@ -14,6 +17,8 @@ $M olddefconfig >/dev/null
 /build/src/scripts/config --file /build/out/.config --set-str CMDLINE "$(cat /k/isa_emu_patch/generic_cmdline.txt)"
 $M olddefconfig >/dev/null
 python3 /k/configure_whl.py --check .config
+# Diagnostic builds must embed the profiling switch; otherwise the boot log cannot attribute hot traps.
+grep -q '^CONFIG_CMDLINE=.*isaemuprofile' .config || { echo "CONFIG_CMDLINE lost isaemuprofile; refusing non-diagnostic build" >&2; exit 1; }
 if ! $M -j${JOBS:-$(nproc)} bzImage modules > /build/out/build-generic.log 2>&1; then
   tail -n 80 /build/out/build-generic.log
   exit 1

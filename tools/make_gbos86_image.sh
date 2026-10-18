@@ -17,6 +17,37 @@ U=$ROOT/usb
 P=$ROOT/lapis/parts
 NAME=gbOS86-$(date +%Y%m%d)
 
+# The init SHA-NI path is a boot-time hot spot on Haswell. Generate a
+# hash-matched scalar-routed init from the exact system_a image when needed.
+# The extracted and patched files are local-only because they derive from
+# Google's proprietary system image.
+PATCHED_INIT=$ROOT/lapis/patched/init
+PATCHED_INIT_SHA=$PATCHED_INIT.orig.sha256
+[ -s "$P/system_a.img" ] || {
+    echo "missing $P/system_a.img; fetch/extract the Google recovery partitions first" >&2
+    exit 1
+  }
+  INIT_EXTRACT=$ROOT/lapis/probe/init-sha-overlay
+  rm -rf "$INIT_EXTRACT"
+  mkdir -p "$INIT_EXTRACT" "$(dirname "$PATCHED_INIT")"
+  docker run --rm --platform linux/amd64 \
+    -v "$P":/images:ro -v "$INIT_EXTRACT":/out alpine:latest sh -c '
+      set -eu
+      apk add -q erofs-utils >/dev/null
+      fsck.erofs --extract=/out --path=/system/bin/init /images/system_a.img
+      stock=$(find /out -type f -name init -print -quit)
+      [ -n "$stock" ] || { echo "fsck.erofs did not extract /system/bin/init" >&2; exit 1; }
+      cp "$stock" /out/stock-init
+    '
+python3 "$ROOT/tools/patch_init_sha.py" "$INIT_EXTRACT/stock-init" "$PATCHED_INIT"
+INIT_HASH=$(tr -d '\r\n' < "$PATCHED_INIT_SHA")
+case "$INIT_HASH" in
+  *[!0-9a-f]*|'') echo "invalid init source-hash manifest: $PATCHED_INIT_SHA" >&2; exit 1 ;;
+esac
+[ "${#INIT_HASH}" -eq 64 ] || {
+  echo "init source-hash manifest must contain exactly 64 hex digits" >&2; exit 1;
+}
+
 # Never build an image from a stale EFI or a module tree from another kernel build.
 MANIFEST=$U/out/kernel-build.manifest
 [ -f "$MANIFEST" ] || { echo "missing $MANIFEST; run tools/rebuild_kernel_efi.sh first" >&2; exit 1; }
@@ -59,21 +90,27 @@ for d in firmware patched audio installer kmod modules; do cp -R "$U/$d" "$G/$d"
 # Kernel build/source symlinks are compile-time only and cannot be represented in the FAT image.
 find "$G/modules" -type l \( -name build -o -name source \) -delete
 
-# Build a tiny ext4 sidecar for performance-only library overlays. Unlike FAT, ext4 can carry
-# Android security.selinux xattrs, so bind-mounted libraries keep their expected labels after init
-# switches SELinux to enforcing. Never source these shared libraries directly from vfat.
+# Build an ext4 sidecar for the hash-matched scalar-routed init and performance-only library
+# overlays. Unlike FAT, ext4 can carry Android security.selinux xattrs, so bind-mounted executables
+# and libraries keep their expected labels after init switches SELinux to enforcing. Never execute
+# or source these replacements directly from vfat.
 PATCHROOT=$STAGE/patched-libs-root
 mkdir -p "$PATCHROOT"
 for f in system.libz.so vendor.libz.so system.libcrypto.so vendor.libcrypto.so; do
   [ -s "$U/patched/$f" ] || { echo "missing patched library: $U/patched/$f" >&2; exit 1; }
   cp "$U/patched/$f" "$PATCHROOT/$f"
 done
+cp "$PATCHED_INIT" "$PATCHROOT/init"
+cp "$PATCHED_INIT_SHA" "$PATCHROOT/init.orig.sha256"
+chmod 0755 "$PATCHROOT/init"
 docker run --rm --platform linux/amd64 -v "$STAGE":/o alpine:latest sh -c '
 set -eu
-apk add -q e2fsprogs >/dev/null
+apk add -q e2fsprogs e2fsprogs-extra >/dev/null
 img=/o/gbos/gbos/patched-libs.img
-truncate -s 16M "$img"
+truncate -s 32M "$img"
 mke2fs -q -t ext4 -F -d /o/patched-libs-root "$img"
+debugfs -w -R "ea_set /init security.selinux u:object_r:init_exec:s0" "$img" >/dev/null
+debugfs -R "ea_list /init" "$img" | grep -F "init_exec" >/dev/null
 debugfs -w -R "ea_set /system.libz.so security.selinux u:object_r:system_lib_file:s0" "$img" >/dev/null
 debugfs -w -R "ea_set /system.libcrypto.so security.selinux u:object_r:system_lib_file:s0" "$img" >/dev/null
 debugfs -w -R "ea_set /vendor.libz.so security.selinux u:object_r:vendor_file:s0" "$img" >/dev/null
