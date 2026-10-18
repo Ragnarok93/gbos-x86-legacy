@@ -56,6 +56,32 @@ for f in hook.sh aidiag.sh early_patch.sh hwdetect.sh install.sh apex_patch.sh g
   cp "$U/$f" "$G/$f"
 done
 for d in firmware patched audio installer kmod modules; do cp -R "$U/$d" "$G/$d"; done
+
+# Build a tiny ext4 sidecar for performance-only library overlays. Unlike FAT, ext4 can carry
+# Android security.selinux xattrs, so bind-mounted libraries keep their expected labels after init
+# switches SELinux to enforcing. Never source these shared libraries directly from vfat.
+PATCHROOT=$STAGE/patched-libs-root
+mkdir -p "$PATCHROOT"
+for f in system.libz.so vendor.libz.so system.libcrypto.so vendor.libcrypto.so; do
+  [ -s "$U/patched/$f" ] || { echo "missing patched library: $U/patched/$f" >&2; exit 1; }
+  cp "$U/patched/$f" "$PATCHROOT/$f"
+done
+docker run --rm --platform linux/amd64 -v "$STAGE":/o alpine:latest sh -c '
+set -eu
+apk add -q e2fsprogs >/dev/null
+img=/o/gbos/gbos/patched-libs.img
+truncate -s 16M "$img"
+mke2fs -q -t ext4 -F -d /o/patched-libs-root "$img"
+debugfs -w -R "ea_set /system.libz.so security.selinux u:object_r:system_lib_file:s0" "$img" >/dev/null
+debugfs -w -R "ea_set /system.libcrypto.so security.selinux u:object_r:system_lib_file:s0" "$img" >/dev/null
+debugfs -w -R "ea_set /vendor.libz.so security.selinux u:object_r:vendor_file:s0" "$img" >/dev/null
+debugfs -w -R "ea_set /vendor.libcrypto.so security.selinux u:object_r:vendor_file:s0" "$img" >/dev/null
+debugfs -R "ea_list /system.libz.so" "$img" | grep -F "system_lib_file" >/dev/null
+debugfs -R "ea_list /system.libcrypto.so" "$img" | grep -F "system_lib_file" >/dev/null
+debugfs -R "ea_list /vendor.libz.so" "$img" | grep -F "vendor_file" >/dev/null
+debugfs -R "ea_list /vendor.libcrypto.so" "$img" | grep -F "vendor_file" >/dev/null
+'
+rm -rf "$PATCHROOT"
 mkdir -p "$G/logs"
 # gbos.cfg ships with MODE=ask (the boot menu)
 grep -q '^MODE=ask$' "$G/gbos.cfg" || { echo "usb/gbos.cfg must have MODE=ask for the image"; exit 1; }
