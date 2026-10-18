@@ -21,7 +21,7 @@ NAME=gbOS86-$(date +%Y%m%d)
 # scalar implementation by tools/patch_init_sha.py. It is intentionally not
 # tracked because it is derived from Google's proprietary system image.
 PATCHED_INIT=$ROOT/lapis/patched/init
-[ -s "$PATCHED_INIT" ] && [ -x "$PATCHED_INIT" ] || {
+[ -s "$PATCHED_INIT" ] || {
   echo "missing executable $PATCHED_INIT; create it with tools/patch_init_sha.py from the matching extracted system init" >&2
   exit 1
 }
