@@ -218,11 +218,162 @@ RC
   # Conscrypt (and identical) APEX libcrypto: the APEX is signed, so patch a copy and bind it over the
   # original once apexd has activated every APEX (init.rc's "wait_for_prop apexd.status activated" is in
   # on post-fs-data, before zygote-start). See apex_patch.sh.
-  if [ -f $G/apex_patch.sh ] && [ "$(grep -c '^    wait_for_prop apexd.status activated$' /tmp/sysinit/hw/init.rc)" = 1 ]; then
+  if [ "${GBOS_DISABLE_PATCHED_LIBS:-0}" != 1 ] && [ -f $G/apex_patch.sh ] && [ "$(grep -c '^    wait_for_prop apexd.status activated
+  mount -t tmpfs -o mode=0755 tmpfs /new/system/etc/init && cp -a /tmp/sysinit/. /new/system/etc/init/ \
+    && log "hook: logcat -> gbos/logs/boot-$N/logcat.txt ($(ls /new/system/etc/init | wc -l) rc files)" \
+    || log "hook: init overlay FAILED"
+else
+  log "hook: bind /gbos -> /postinstall FAILED"
+fi
+
+# vendor/build.prop overrides. Hide protected_vm.supported=1 (no pKVM here). DENSITY in gbos.cfg
+# optionally replaces ro.sf.lcd_density (stock 260); unset keeps stock. To make things smaller without
+# touching density, use RESOLUTION instead (gbos_wmsize in gbos.rc above).
+# The Latitude's LG LP133WF6 is an sRGB panel, not wide-gamut/HDR like Google's: with these true,
+# SurfaceFlinger offers DISPLAY_BT2020 and drm_hwcomposer tags eDP as BT.2020 (pale colours; the
+# kernel side is fixed in i915_edp_colorspace.sh). Declare it sRGB-only.
+case "$DENSITY" in ''|*[!0-9]*) DENSITY=;; esac
+DROP='^ro.boot.hypervisor.protected_vm.supported=|^ro.surface_flinger.has_wide_color_display=|^ro.surface_flinger.has_HDR_display='
+[ -n "$DENSITY" ] && DROP="$DROP|^ro.sf.lcd_density="
+{ grep -v -E "$DROP" /new/vendor/build.prop
+  echo "ro.surface_flinger.has_wide_color_display=false"
+  echo "ro.surface_flinger.has_HDR_display=false"
+  if [ -n "$DENSITY" ]; then echo "ro.sf.lcd_density=$DENSITY"; fi
+} > /tmp/vendor.build.prop && mount --bind /tmp/vendor.build.prop /new/vendor/build.prop \
+  && log "hook: vendor build.prop: protected_vm.supported hidden, sRGB-only display, lcd_density=${DENSITY:-stock}"
+# Only one Trusty VM may own CID 200: drop the plain launcher's auto-start so the on-demand
+# (accessor-registering) launcher runs it, falling back to non-protected by itself.
+R=/new/system_ext/etc/init/desktop-trusty_security_vm_launcher.rc
+sed 's/^    start trusty_security_vm_launcher$/    # gbos: plain launcher disabled/' $R > /tmp/vm_launcher.rc \
+  && mount --bind /tmp/vm_launcher.rc $R \
+  && log "hook: plain trusty launcher disabled ($(grep -c 'gbos: plain launcher disabled' $R) triggers)"
+# Software KeyMint: Trusty's TEE KeyMint needs Google's security chip for its root of trust and
+# hangs without it. Hide the Trusty KeyMint/RKP/SecureClock declarations so keystore2 uses
+# km_compat, and use a libkm_compat patched to serve its software KeyMint for every security level.
+KM=/new/system/lib64/libkm_compat.so
+if [ -f $G/libkm_compat.so ] && [ "$(sha256sum $KM | cut -d' ' -f1)" = "be92d0a47d07a4a928ad1395f470195870dfdd16825866b7eaf3dd670d9b2461" ]; then
+  mount --bind $G/libkm_compat.so $KM && log "hook: software KeyMint (patched libkm_compat) active"
+else
+  log "hook: libkm_compat NOT patched (missing patch or unexpected original)"
+fi
+[ -f $G/system_ext_manifest.xml ] && mount --bind $G/system_ext_manifest.xml /new/system_ext/etc/vintf/manifest.xml \
+  && log "hook: Trusty KeyMint VINTF declarations hidden"
+# StrongBox KeyMint (vendor APEX) needs the security chip too, and keystore2 aborts boot when a
+# declared KeyMint won't accept module info. Overlay /vendor/apex without that one APEX.
+mkdir -p /tmp/vapex && mount --bind /new/vendor/apex /tmp/vapex \
+  && mount -t tmpfs -o mode=0755 tmpfs /new/vendor/apex && for f in /tmp/vapex/*; do
+    n=${f##*/}; case $n in com.android.hardware.keymint.strongbox.desktop.apex) continue;; esac
+    touch /new/vendor/apex/$n && mount --bind $f /new/vendor/apex/$n
+  done && log "hook: vendor apex without strongbox: $(ls /new/vendor/apex | tr '\n' ' ')"
+# Weaver is Trusty/GSC-backed and only starts with protected_vm.supported=1 (hidden above), but
+# its VINTF declaration stays, so LockSettingsService waits on it forever and the Watchdog kills
+# system_server ("System process not responding"). Undeclared, LSS goes without Weaver.
+W=/new/vendor/etc/vintf/manifest/android.hardware.weaver-service.android-desktop.xml
+[ -f $W ] && echo '<manifest version="9.0" type="device"/>' > /tmp/weaver.xml \
+  && mount --bind /tmp/weaver.xml $W && log "hook: Weaver VINTF declaration hidden"
+# Secretkeeper is Trusty-backed too (VSOCK:200) and never answers. virtualizationservice waits for it
+# in allocateInstanceId, so the Linux Terminal's VM never starts. Undeclared, AVF goes without it.
+SK=/new/vendor/etc/vintf/manifest/android.hardware.security.secretkeeper.trusty.xml
+[ -f $SK ] && echo '<manifest version="9.0" type="device"/>' > /tmp/secretkeeper.xml \
+  && mount --bind /tmp/secretkeeper.xml $SK && : > /tmp/empty.rc \
+  && mount --bind /tmp/empty.rc /new/vendor/etc/init/android.hardware.security.secretkeeper.trusty.desktop.rc \
+  && log "hook: Secretkeeper VINTF declaration hidden"
+# Gatekeeper is Trusty-backed (VSOCK:200) and enroll never returns, so setting a lock-screen
+# password hangs LockSettingsService (and every Settings screen waiting on it). Keep the VINTF
+# declaration but don't start the Trusty service: gbos_soft_gk (gbos.rc above) registers
+# IGatekeeper/default instead. Without soft_gk on the stick, hide the declaration so enroll fails fast.
+GK=/new/vendor/etc/vintf/manifest/android.hardware.gatekeeper-service.trusty.xml
+: > /tmp/empty.rc && mount --bind /tmp/empty.rc /new/vendor/etc/init/android.hardware.gatekeeper-service.trusty.rc
+if [ -x $G/soft_gk ]; then
+  log "hook: Trusty Gatekeeper replaced by software Gatekeeper (soft_gk)"
+else
+  echo '<manifest version="9.0" type="device"/>' > /tmp/gatekeeper.xml && mount --bind /tmp/gatekeeper.xml $GK \
+    && log "hook: Trusty Gatekeeper hidden, no soft_gk (no lock-screen password)"
+fi
+# Keep vold off USB disks: its voldmanaged=usb rule picks up this stick, and its fsck_msdos
+# "repairs" the FAT while stage0 has it mounted (LOST.DIR, lost/truncated logs, cross-linked
+# clusters). The stick must only ever be mounted by stage0.
+F=/new/vendor/etc/fstab.android-desktop
+grep -v 'voldmanaged=usb' $F > /tmp/fstab.android-desktop \
+  && mount --bind /tmp/fstab.android-desktop $F && log "hook: vold USB rule removed from fstab"
+# Audio: the audio HAL (dras) needs a config whose <soundcard> equals the ALSA card id. Google ships only its SOF
+# SoundWire card; gbos/audio/gbos-hda-pch is the legacy-HDA one (card id PCH, true for nearly every Intel PCH HDA
+# laptop). For any other main card (SOF: sof-hda-dsp, sof-rt5682, ...) a copy is generated with that card's id and
+# name, which is a best-effort mapping (mixer controls differ per codec).
+A=/new/vendor/etc/audio
+AC=gbos-hda-pch
+if [ -f $G/audio/gbos-hda-pch/audio_config.xml ]; then
+  CARD=$(grep '\[' /proc/asound/cards 2>/dev/null | grep -v -i hdmi | head -n 1)
+  CID=$(echo "$CARD" | sed -n 's/^ *[0-9]* \[\([^] ]*\) *\].*/\1/p'); CNAME=$(echo "$CARD" | sed -n 's/.* - //p')
+  mkdir -p /tmp/gbos-audio
+  if [ -n "$CID" ] && [ "$CID" != PCH ]; then
+    AC=gbos-gen; rm -rf /tmp/gbos-audio/$AC; cp -r $G/audio/gbos-hda-pch /tmp/gbos-audio/$AC
+    sed -i "s/HDA Intel PCH/$CNAME/g; s/PCH/$CID/g" /tmp/gbos-audio/$AC/*.xml
+    sed "s/<soundcard>PCH/<soundcard>$CID/; s#gbos-hda-pch#$AC#" $G/audio/audio_default.xml > /tmp/gbos-audio/audio_default.xml
+    ASRC=/tmp/gbos-audio/$AC; ADEF=/tmp/gbos-audio/audio_default.xml
+  else
+    ASRC=$G/audio/gbos-hda-pch; ADEF=$G/audio/audio_default.xml
+  fi
+  mkdir -p /tmp/vaudio && mount --bind $A /tmp/vaudio && mount -t tmpfs -o mode=0755 tmpfs $A \
+    && for f in /tmp/vaudio/*; do n=${f##*/}; { [ -d $f ] && mkdir -p $A/$n || touch $A/$n; } && mount --bind $f $A/$n; done \
+    && mkdir -p $A/$AC && mount --bind $ASRC $A/$AC \
+    && mount --bind $ADEF /new/vendor/etc/data/hal_configs/audio_default.xml \
+    && log "hook: audio config $AC (card id ${CID:-none}, name ${CNAME:-none}) active"
+fi
+# apgetty (UART shell) has no UART configured here and crash-loops
+: > /tmp/empty.rc && mount --bind /tmp/empty.rc /new/system_ext/etc/init/apgetty.rc && log "hook: apgetty disabled"
+log "hook: kvm: $(ls /sys/class/misc | grep -E 'kvm|vhost' | tr '\n' ' ')"
+
+# KVM trace -> kvmtrace.txt: guest exceptions / failed emulation / triple faults, to see why the
+# Trusty VM goes silent. Reader opens trace_pipe now so it survives switch_root.
+T=/tmp/tracing; mkdir -p $T
+if mount -t tracefs tracefs $T; then
+  E=$T/events/kvm
+  echo 8192 > $T/buffer_size_kb
+  for ev in kvm_inj_exception kvm_emulate_insn kvm_userspace_exit kvm_exit kvm_pio kvm_mmio kvm_hypercall kvm_fast_mmio kvm_inj_virq kvm_pic_set_irq kvm_ioapic_set_irq kvm_msi_set_irq kvm_set_irq kvm_apic_accept_irq; do
+    [ -d $E/$ev ] && echo 1 > $E/$ev/enable
+  done
+  ( exec 4<$T/trace_pipe; /gbos/busybox dd bs=4096 count=8000 iflag=fullblock <&4 >> $L/kvmtrace.txt 2>/dev/null ) &
+  log "hook: kvm tracing (all exits) -> kvmtrace.txt"
+else
+  log "hook: tracefs mount FAILED"
+fi
+
+if [ "${GBOS_DISABLE_PATCHED_LIBS:-0}" != 1 ]; then
+# libz: adler32_z's AVX-VNNI helper (vpdpwssd) traps on this CPU (~half of all emulated instructions).
+# The patched copies (tools/patch_libz_adler.py) make adler32_z always take its scalar path. Each is only
+# bind-mounted over the exact original it was made from.
+for p in system:/new/system/lib64/libz.so:371f70d6a9392327cb36838d0cbc7af7388d1689c25d91cd343af8e58433683b vendor:/new/vendor/lib64/libz.so:e45aecb65cbb40f0c3070b05aa9d974076d401ed6f2aff3081af26a14e812590; do
+  n=${p%%:*}; r=${p#*:}; t=${r%%:*}; h=${r#*:}
+  if grep -q " $t " /proc/mounts; then
+    log "hook: $n libz already patched (early_patch.sh)"
+  elif [ -f $G/patched/$n.libz.so ] && [ "$(sha256sum $t | cut -d' ' -f1)" = "$h" ]; then
+    mount --bind $G/patched/$n.libz.so $t && log "hook: patched $n libz (scalar adler32) active"
+  else
+    log "hook: $n libz NOT patched (missing patch or unexpected original)"
+  fi
+done
+
+# libcrypto: SHA-NI block functions trap here; the patched copies (tools/sha_redirect.py) send them to the
+# scalar siblings. Hash-gated like libz.
+for p in system:/new/system/lib64/libcrypto.so:0ee96c7e0cb1ffca5520d2eaca02b4fa2ccff5a8fcb753a491e85555a91c9f2a vendor:/new/vendor/lib64/libcrypto.so:70cc371baf9925d5f1f857d03177d5193caf60bb13bb2012b4336657adcf48e7; do
+  n=${p%%:*}; r=${p#*:}; t=${r%%:*}; h=${r#*:}
+  if grep -q " $t " /proc/mounts; then
+    log "hook: $n libcrypto already patched (early_patch.sh)"
+  elif [ -f $G/patched/$n.libcrypto.so ] && [ "$(sha256sum $t | cut -d' ' -f1)" = "$h" ]; then
+    mount --bind $G/patched/$n.libcrypto.so $t && log "hook: patched $n libcrypto (scalar SHA) active"
+  else
+    log "hook: $n libcrypto NOT patched (missing patch or unexpected original)"
+  fi
+done
+else
+  log "hook: patched library replacements disabled (FAT vfat labels; using stock libraries + ISA emulation)"
+fi
+ /tmp/sysinit/hw/init.rc)" = 1 ]; then
     sed -i 's#^    wait_for_prop apexd.status activated$#&\n    exec u:r:shell:s0 root root -- /system/bin/sh /postinstall/gbos/apex_patch.sh#' /tmp/sysinit/hw/init.rc \
       && log "hook: init.rc runs apex_patch.sh after APEX activation"
   else
-    log "hook: apex_patch NOT installed (script missing or init.rc anchor not unique)"
+    log "hook: apex_patch skipped or unavailable (patched libs disabled, script missing, or init.rc anchor not unique)"
   fi
   mount -t tmpfs -o mode=0755 tmpfs /new/system/etc/init && cp -a /tmp/sysinit/. /new/system/etc/init/ \
     && log "hook: logcat -> gbos/logs/boot-$N/logcat.txt ($(ls /new/system/etc/init | wc -l) rc files)" \
