@@ -154,7 +154,8 @@ static bool classify(struct insn *insn, struct op *o)
 			if (pp == 1 && w && (opc == 0xb4 || opc == 0xb5)) {
 				o->kind = opc == 0xb4 ? K_IFMA_L : K_IFMA_H; return true;
 			}
-			if (pp == 1 && l && opc >= 0xdc && opc <= 0xdf) {
+			/* VAES has both VEX.128 and VEX.256 encodings. */
+			if (pp == 1 && opc >= 0xdc && opc <= 0xdf) {
 				o->kind = K_VAES; o->aes_op = opc - 0xdc; return true;
 			}
 			return false;
@@ -177,7 +178,8 @@ static bool classify(struct insn *insn, struct op *o)
 		if (o->vex) {
 			if (pp == 1 && w && opc == 0xce) { o->kind = K_GF2P8AFF; return true; }
 			if (pp == 1 && w && opc == 0xcf) { o->kind = K_GF2P8AFFINV; return true; }
-			if (pp == 1 && l && opc == 0x44) { o->kind = K_CLMUL; return true; }
+			/* VPCLMULQDQ has both VEX.128 and VEX.256 encodings. */
+			if (pp == 1 && opc == 0x44) { o->kind = K_CLMUL; return true; }
 			return false;
 		}
 		if (opc == 0xcc && pp == 0) { o->kind = K_SHA1RNDS4; return true; }
