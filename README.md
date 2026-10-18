@@ -67,7 +67,7 @@ UEFI firmware
          ├─ mounts super.img's erofs partitions (system, vendor, product, ...) via loop + dm-linear
          ├─ runs gbos/hook.sh (all Android-side workarounds, editable without a kernel rebuild)
          ├─ mounts /data, /metadata (NVMe ext4, else tmpfs)
-         └─ switch_root → /system/bin/init selinux_setup   (Google's Android init, unmodified)
+         └─ switch_root → /system/bin/init selinux_setup   (hash-matched init overlay routes SHA-NI SHA-256 to scalar code)
 ```
 
 **The core problem:** lapis binaries use CPU instructions this CPU lacks: GFNI, AVX-VNNI, SHA-NI,
@@ -76,10 +76,16 @@ UEFI firmware
 1. **Kernel emulation** (`kernel/isa_emu_patch/`). The `#UD` (invalid opcode) handler decodes the
    instruction, emulates it on the saved FPU state (`isa_emu_core.c`, 13k known-answer tests), and
    continues. It is correct but slow, about a microsecond per instruction.
-2. **Binary patches** for the hottest code (`usb/patched/`, bind-mounted by `hook.sh`, and only
-   applied when the original's sha256 matches):
+2. **Binary patches** for the hottest code. The system/vendor libraries in `usb/patched/` are
+   hash-gated, and the scalar-routed `/system/bin/init` is generated from the exact `system_a.img`
+   during image build. Init and the four system/vendor library replacements are packaged in
+   `patched-libs.img`, an ext4 sidecar with Android SELinux labels; no executable overlay is run
+   directly from the FAT USB volume.
+   - `init`: routes the SHA-NI SHA-256 entry point to the scalar implementation, avoiding a long
+     emulation path while loading SELinux policy on CPUs without SHA-NI.
    - `libz.so`: `adler32_z` always takes its scalar path (was ~50% of all emulation).
-   - `libcrypto.so` ×3 (system, vendor, Conscrypt APEX): SHA-NI SHA-256 → scalar SHA-256 (was ~50%).
+   - `libcrypto.so` (system/vendor): SHA-NI SHA-256 → scalar SHA-256. The Conscrypt APEX overlay
+     remains deferred until it can be packaged with a correct SELinux label.
 
    **When they are bound.** `usb/early_patch.sh` (sourced from `gbos.cfg`) wraps `chroot` in stage0 and binds the
    system/vendor `libz` + `libcrypto` just before the first `dmctl` call. Without it, every `dmctl` process
