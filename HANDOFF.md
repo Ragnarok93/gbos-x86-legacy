@@ -1,5 +1,13 @@
 # gbos-x86 handoff
 
+## 2026-10-18: Make E6540 kernel rebuild and image packaging fail-safe
+
+- Added `tools/rebuild_kernel_efi.sh` as the documented full rebuild entry point. It runs generic kernel/module build stage 1 and stage 2 in the existing `gbos-kbuild` image and `gbos-ksrc` volume.
+- Stage 2 now reconstructs the stage0 cpio from the current `usb/stage0_init.sh`, the current busybox, and the module subset from that same kernel build; sets and verifies `CONFIG_INITRAMFS_SOURCE`; rebuilds `bzImage`; exports it to `usb/out/BOOTX64.EFI` and `kernel/out/bzImage`; and exports the full matching module tree to `usb/modules/lib/modules/$KVER`.
+- Added `usb/out/kernel-build.manifest` hashes for the stage0 script, kernel config script, and EFI. The image builder now refuses to package a stale EFI, stale stage0, changed kernel config script, or missing/mismatched module tree.
+- Fixed both generic kernel build stages so a failing compiler is not masked by a successful `tail` pipeline. Config validation now exits nonzero if any requested `OVERRIDES` fail to survive `olddefconfig`; generic-symbol gaps remain printed as diagnostics.
+- These changes make the build path coherent but are not claimed build-tested: this connector can edit GitHub source, not run the user's Docker kernel build. First run `tools/rebuild_kernel_efi.sh`; if configuration validation reports a missed override, resolve it before compiling further. Then run `tools/make_gbos86_image.sh` to create the flashable image.
+
 ## 2026-10-18: Dell Latitude E6540 (Haswell) bring-up fixes — not yet hardware-verified
 
 - Stage0 now mounts the packaged module tree matching `uname -r` before its first `modprobe i915`, even when `HWDETECT=0`. That option disables modalias coldplug, not the need for the correct kernel modules. `hwdetect.sh` avoids stacking the same bind mount.
