@@ -1,0 +1,24 @@
+Panic#1 Part13
+<6>[    1.282481][   T98] clocksource: Switched to clocksource tsc
+<6>[    1.320327][   T76] ata3: SATA link down (SStatus 0 SControl 300)
+<6>[    1.333240][    T1] Freeing unused kernel image (initmem) memory: 11736K
+<6>[    1.333669][    T1] Write protecting the kernel read-only data: 36864k
+<6>[    1.334156][    T1] Freeing unused kernel image (text/rodata gap) memory: 512K
+<6>[    1.334782][    T1] Freeing unused kernel image (rodata/data gap) memory: 1440K
+<6>[    1.335031][    T1] Run /init as init process
+<7>[    1.335235][    T1]   with arguments:
+<7>[    1.335434][    T1]     /init
+<7>[    1.335633][    T1]     gbos_permissive
+<7>[    1.335818][    T1]     
+<7>[    1.336004][    T1]   with environment:
+<7>[    1.336187][    T1]     HOME=/
+<7>[    1.336365][    T1]     TERM=linux
+<12>[    1.340905][    T1] gbos-stage0: === gbOS86 boot, kernel 6.18.21-gbos-whl+ ===
+<5>[    1.362900][  T136] sdhci: module verification failed: signature and/or required key missing - tainting kernel
+<6>[    1.364650][  T136] sdhci: Secure Digital Host Controller Interface driver
+<6>[    1.364866][  T136] sdhci: Copyright(c) Pierre Ossman
+<6>[    1.367864][   T83] sdhci-pci 0000:0e:00.0: SDHCI controller found [1217:8520] (rev 1)
+<6>[    1.369124][   T83] mmc0: SDHCI controller on PCI [0000:0e:00.0] using ADMA
+<12>[    1.370120][    T1] gbos-stage0: sdhci-pci loaded (eMMC/SD controller)
+<12>[    1.370675][    T1] gbos-stage0: waiting for LABEL=GBOS (USB) or LABEL=GBOSSYS (NVMe) ...
+<6>[    1.494188][   T52] input: AlpsPS/2 ALPS DualPoint Stick as /devices/platform/i8042/serio1/input/input10

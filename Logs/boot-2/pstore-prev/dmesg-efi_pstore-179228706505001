@@ -1,0 +1,17 @@
+Panic#1 Part5
+<12>[  801.003595][    T1] gbos-stage0: hook: crossystem faked
+<12>[  801.030949][    T1] gbos-stage0: hook: init.rc runs apex_patch.sh after APEX activation
+<12>[  801.034777][    T1] gbos-stage0: hook: logcat -> gbos/logs/boot-6/logcat.txt (85 rc files)
+<12>[  801.039722][    T1] gbos-stage0: hook: vendor build.prop: protected_vm.supported hidden, sRGB-only display, lcd_density=180
+<12>[  801.044642][    T1] gbos-stage0: hook: plain trusty launcher disabled (2 triggers)
+<12>[  801.053690][    T1] gbos-stage0: hook: software KeyMint (patched libkm_compat) active
+<12>[  801.056059][    T1] gbos-stage0: hook: Trusty KeyMint VINTF declarations hidden
+<12>[  801.063056][    T1] gbos-stage0: hook: vendor apex without strongbox: com.android.hardware.audio.desktop.apex com.android.hardware.cas.apex com.android.hardware.drm.clearkey.apex com.android.hardware.fingerprint.crosfp.apex com.google.android.widevine-15540286.apex 
+<12>[  801.068988][    T1] gbos-stage0: hook: Weaver VINTF declaration hidden
+<12>[  801.073491][    T1] gbos-stage0: hook: Secretkeeper VINTF declaration hidden
+<12>[  801.074705][    T1] gbos-stage0: hook: Trusty Gatekeeper replaced by software Gatekeeper (soft_gk)
+<12>[  801.077416][    T1] gbos-stage0: hook: vold USB rule removed from fstab
+<12>[  801.093130][    T1] gbos-stage0: hook: audio config gbos-hda-pch (card id PCH, name HDA Intel PCH) active
+<12>[  801.095838][    T1] gbos-stage0: hook: apgetty disabled
+<12>[  801.097429][    T1] gbos-stage0: hook: kvm: kvm vhost-vsock 
+<12>[  801.126235][    T1] gbos-stage0: hook: kvm tracing (all exits) -> kvmtrace.txt

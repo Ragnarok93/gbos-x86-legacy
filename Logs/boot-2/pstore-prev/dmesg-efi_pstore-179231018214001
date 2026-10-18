@@ -1,0 +1,22 @@
+Panic#1 Part14
+<6>[    0.703374][   T95] usb 2-6: Manufacturer: Lexar
+<6>[    0.703579][   T95] usb 2-6: SerialNumber: 562726443E614BE8
+<6>[    0.704766][   T95] usb-storage 2-6:1.0: USB Mass Storage device detected
+<6>[    0.705887][    T9] usb 1-1: New USB device found, idVendor=8087, idProduct=8008, bcdDevice= 0.04
+<6>[    0.706099][    T9] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+<6>[    0.706582][    T9] hub 1-1:1.0: USB hub found
+<6>[    0.707818][    T9] hub 1-1:1.0: 6 ports detected
+<6>[    0.708025][   T95] scsi host5: usb-storage 2-6:1.0
+<6>[    0.716897][   T96] usb 3-1: New USB device found, idVendor=8087, idProduct=8000, bcdDevice= 0.04
+<6>[    0.717154][   T96] usb 3-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+<6>[    0.717562][   T96] hub 3-1:1.0: USB hub found
+<6>[    0.718989][   T96] hub 3-1:1.0: 8 ports detected
+<6>[    0.935883][   T72] ata2: SATA link up 1.5 Gbps (SStatus 113 SControl 300)
+<6>[    0.939409][   T72] ata2.00: ATAPI: MATSHITA DVD+/-RW UJ8FB, 1.02, max UDMA/100
+<6>[    0.939695][   T72] ata2.00: Features: Dev-Attention HIPM DIPM
+<6>[    0.946981][   T72] ata2.00: configured for UDMA/100
+<5>[    0.965431][   T65] scsi 1:0:0:0: CD-ROM            MATSHITA DVD+-RW UJ8FB    1.02 PQ: 0 ANSI: 5
+<6>[    0.988594][   T87] usb 1-1.5: new high-speed USB device number 3 using ehci-pci
+<6>[    1.000589][  T101] usb 3-1.5: new full-speed USB device number 3 using ehci-pci
+<6>[    1.101622][  T101] usb 3-1.5: New USB device found, idVendor=8087, idProduct=07da, bcdDevice=78.69
+<6>[    1.102477][  T101] usb 3-1.5: New USB device strings: Mfr=0, Product=0, SerialNumber=0

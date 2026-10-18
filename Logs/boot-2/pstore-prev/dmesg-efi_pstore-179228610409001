@@ -1,0 +1,18 @@
+Panic#1 Part9
+<12>[   48.547143][    T1] gbos-stage0: hwdetect: module tree 6.18.21-gbos-whl+ (396 modules) from gbos/modules
+<6>[   49.204085][  T354] i915 0000:00:02.0: [drm] Found haswell (device ID 0416) integrated display version 7.00 stepping N/A
+<6>[   49.205034][  T354] i915 0000:00:02.0: [drm] VT-d active for gfx access
+<6>[   49.240677][  T354] Console: switching to colour dummy device 80x25
+<6>[   49.256927][  T354] i915 0000:00:02.0: vgaarb: deactivate vga console
+<6>[   49.256987][  T354] i915 0000:00:02.0: [drm] Using Transparent Hugepages
+<5>[   49.256992][  T354] i915 0000:00:02.0: [drm] DMAR active, disabling use of stolen memory
+<6>[   49.260381][  T354] i915 0000:00:02.0: vgaarb: VGA decodes changed: olddecodes=io+mem,decodes=io+mem:owns=io+mem
+<6>[   49.322766][  T354] i915 0000:00:02.0: [drm] Registered 3 planes with drm panic
+<6>[   49.322775][  T354] [drm] Initialized i915 1.6.0 for 0000:00:02.0 on minor 1
+<6>[   49.325578][  T354] ACPI: video: Video Device [GFX0] (multi-head: yes  rom: no  post: no)
+<6>[   49.326041][  T354] input: Video Bus as /devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/LNXVIDEO:00/input/input11
+<6>[   49.362461][  T354] fbcon: i915drmfb (fb0) is primary device
+<6>[   49.361904][   T83] snd_hda_intel 0000:00:03.0: bound 0000:00:02.0 (ops intel_audio_component_bind_ops [i915])
+<6>[   49.368233][   T11] input: HDA Intel HDMI HDMI/DP,pcm=3 as /devices/pci0000:00/0000:00:03.0/sound/card1/input12
+<6>[   49.368266][   T11] input: HDA Intel HDMI HDMI/DP,pcm=7 as /devices/pci0000:00/0000:00:03.0/sound/card1/input13
+<6>[   49.368296][   T11] input: HDA Intel HDMI HDMI/DP,pcm=8 as /devices/pci0000:00/0000:00:03.0/sound/card1/input14

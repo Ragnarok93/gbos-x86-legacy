@@ -1,0 +1,18 @@
+Panic#1 Part6
+<12>[  797.563779][    T1] gbos-stage0: hwdetect: coldplug pass 1: 41 modules loaded (was 12)
+<6>[  797.668101][   T22] intel_rapl_common: Found RAPL domain package
+<6>[  797.668760][   T22] intel_rapl_common: Found RAPL domain core
+<6>[  797.669373][   T22] intel_rapl_common: Found RAPL domain uncore
+<6>[  797.669913][   T22] intel_rapl_common: Found RAPL domain dram
+<6>[  797.670440][   T22] intel_rapl_common: package-0:package:long_term locked by BIOS
+<6>[  797.670968][   T22] intel_rapl_common: package-0:package:short_term locked by BIOS
+<12>[  798.694176][    T1] gbos-stage0: hwdetect: coldplug pass 2: 42 modules loaded (was 41)
+<12>[  799.817576][    T1] gbos-stage0: hwdetect: coldplug pass 3: 42 modules loaded (was 42)
+<12>[  799.823743][    T1] gbos-stage0: hwdetect: devices after 0s: wifi=wlan0  bt=hci0  sound= 0 [PCH ]: HDA-Intel - HDA Intel PCH; 1 [HDMI ]: HDA-Intel - HDA Intel HDMI; backlight=intel_backlight 
+<12>[  799.964643][    T1] gbos-stage0: hwdetect: report written (hwdetect.txt)
+<12>[  799.965366][    T1] gbos-stage0: hook: drm.debug=0x04 (KMS) until boot_completed
+<6>[  799.966260][  T879] loop6: detected capacity change from 0 to 16384
+<6>[  799.979049][  T879]  loop6: p1 p2 p3
+<7>[  800.316644][  T624] i915 0000:00:02.0: [drm:intel_pps_vdd_off_sync_unlocked [i915]] [ENCODER:89:DDI A/PHY A] PPS 0 turning VDD off
+<7>[  800.320102][  T624] i915 0000:00:02.0: [drm:intel_pps_vdd_off_sync_unlocked [i915]] [ENCODER:89:DDI A/PHY A] PPS 0 PP_STATUS: 0x80000008 PP_CONTROL: 0x00000007
+<12>[  801.000208][    T1] gbos-stage0: hook: bootdisk on loop6: loop6p1 loop6p2 loop6p3 

@@ -1,0 +1,21 @@
+Panic#1 Part4
+<6>[  170.344442][  T375] e1000e: Intel(R) PRO/1000 Network Driver
+<6>[  170.344478][  T375] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+<6>[  170.344673][  T375] e1000e 0000:00:19.0: Interrupt Throttling Rate (ints/sec) set to dynamic conservative mode
+<6>[  170.415606][  T375] e1000e 0000:00:19.0 0000:00:19.0 (uninitialized): registered PHC clock
+<6>[  170.480573][  T375] e1000e 0000:00:19.0 eth0: (PCI Express:2.5GT/s:Width x1) 34:e6:d7:88:5f:18
+<6>[  170.480637][  T375] e1000e 0000:00:19.0 eth0: Intel(R) PRO/1000 Network Connection
+<6>[  170.480728][  T375] e1000e 0000:00:19.0 eth0: MAC: 11, PHY: 12, PBA No: FFFFFF-0FF
+<6>[  170.488099][   T83] i801_smbus 0000:00:1f.3: SPD Write Disable is set
+<6>[  170.489417][   T83] i801_smbus 0000:00:1f.3: SMBus using PCI interrupt
+<6>[  170.491490][   T83] i2c i2c-9: Successfully instantiated SPD at 0x50
+<6>[  170.586542][  T375] Bluetooth: Core ver 2.22
+<6>[  170.587106][  T375] NET: Registered PF_BLUETOOTH protocol family
+<6>[  170.587648][  T375] Bluetooth: HCI device and connection manager initialized
+<6>[  170.588194][  T375] Bluetooth: HCI socket layer initialized
+<6>[  170.588757][  T375] Bluetooth: L2CAP socket layer initialized
+<6>[  170.589908][  T375] Bluetooth: SCO socket layer initialized
+<6>[  170.617421][  T375] usbcore: registered new interface driver btusb
+<3>[  170.618302][  T386] Bluetooth: hci0: unexpected event for opcode 0x0000
+<6>[  170.626218][  T375] dcdbas dcdbas: Dell Systems Management Base Driver (version 5.6.0-3.4)
+<6>[  170.634090][  T375] input: Dell WMI hotkeys as /devices/platform/PNP0C14:00/wmi_bus/wmi_bus-PNP0C14:00/9DBB5994-A997-11DA-B012-B622A1EF5492-2/input/input15
