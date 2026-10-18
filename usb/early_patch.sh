@@ -4,6 +4,10 @@
 # without SHA-NI. Bind only replacements made for the exact original bytes; hook.sh repeats this
 # check later as a fail-safe and handles the Conscrypt APEX after apexd activation.
 gbos_early_patch() {
+  if [ "${GBOS_DISABLE_PATCHED_LIBS:-0}" = 1 ]; then
+    log "early: patched library replacements disabled (FAT sources have vfat SELinux labels)"
+    return 0
+  fi
   for p in system:/new/system/lib64/libz.so:371f70d6a9392327cb36838d0cbc7af7388d1689c25d91cd343af8e58433683b vendor:/new/vendor/lib64/libz.so:e45aecb65cbb40f0c3070b05aa9d974076d401ed6f2aff3081af26a14e812590; do
     n=${p%%:*}; r=${p#*:}; t=${r%%:*}; h=${r#*:}
     if grep -q " $t " /proc/mounts; then
