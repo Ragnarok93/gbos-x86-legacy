@@ -56,6 +56,8 @@ for f in hook.sh aidiag.sh early_patch.sh hwdetect.sh install.sh apex_patch.sh g
   cp "$U/$f" "$G/$f"
 done
 for d in firmware patched audio installer kmod modules; do cp -R "$U/$d" "$G/$d"; done
+# Kernel build/source symlinks are compile-time only and cannot be represented in the FAT image.
+find "$G/modules" -type l \( -name build -o -name source \) -delete
 
 # Build a tiny ext4 sidecar for performance-only library overlays. Unlike FAT, ext4 can carry
 # Android security.selinux xattrs, so bind-mounted libraries keep their expected labels after init
