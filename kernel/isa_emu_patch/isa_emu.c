@@ -29,6 +29,16 @@
 
 static bool isa_emu_enabled __ro_after_init = true;
 
+/* Detailed instruction attribution is opt-in for performance. */
+static bool isa_emu_profile_enabled __ro_after_init;
+
+static int __init isa_emu_profile_setup(char *s)
+{
+        isa_emu_profile_enabled = true;
+        return 1;
+}
+__setup("isaemuprofile", isa_emu_profile_setup);
+
 static int __init isa_emu_setup(char *s)
 {
 	isa_emu_enabled = false;
@@ -452,7 +462,8 @@ static bool emulate_adx(struct insn *insn, struct pt_regs *regs, struct adx_op *
 		static atomic64_t total;
 		long n = atomic64_inc_return(&total);
 
-		prof_hit(regs->ip - insn->length, o->kind);
+		if (READ_ONCE(isa_emu_profile_enabled))
+		        prof_hit(regs->ip - insn->length, o->kind);
 		if (!(n & 0xfffff))
 			pr_info("isa_emu: %ld ADX instructions emulated (last: %s[%d] kind=%d)\n",
 				n, current->comm, task_pid_nr(current), o->kind);
@@ -541,11 +552,13 @@ bool isa_emu_handle_ud(struct pt_regs *regs)
 		static atomic64_t total;
 		long n = atomic64_inc_return(&total);
 
-		prof_hit(regs->ip - insn.length, o.kind);
+		if (READ_ONCE(isa_emu_profile_enabled))
+		        prof_hit(regs->ip - insn.length, o.kind);
 		if (!(n & 0xfffff)) {
 			pr_info("isa_emu: %ld instructions emulated (last: %s[%d] kind=%d)\n",
 				n, current->comm, task_pid_nr(current), o.kind);
-			prof_dump();
+			if (READ_ONCE(isa_emu_profile_enabled))
+			        prof_dump();
 		}
 	}
 	return true;

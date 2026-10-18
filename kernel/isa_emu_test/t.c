@@ -146,6 +146,54 @@ void _start_c(void)
 			: [p] "r"(&srcmem) : "cc", "memory");
 		check("adcxq memory source", d == 5 && !(f & 1));
 	}
+
+	/* 32-bit ADOX must zero-extend and preserve CF. */
+	{
+		uint64_t d, f, tmp;
+		uint32_t s = 0;
+		__asm__ volatile(
+			"movabsq $0x7fffffffffffffff, %[tmp]\n\t"
+			"addq $1, %[tmp]\n\t"
+			"movq $-1, %[d]\n\t"
+			"clc\n\t"
+			"adox %k[s], %k[d]\n\t"
+			"pushfq\n\tpopq %[f]"
+			: [d] "=&r"(d), [tmp] "=&r"(tmp), [f] "=&r"(f)
+			: [s] "r"(s) : "cc", "memory");
+		check("adoxl zero-extends and preserves CF",
+		      d == 0 && !(f & 1) && (f & (1ULL << 11)));
+	}
+	/* Exercise REX.R/REX.B with R10 as destination and R11 as source. */
+	{
+		register uint64_t d __asm__("r10") = UINT64_MAX;
+		register uint64_t s __asm__("r11") = 0;
+		uint64_t f;
+		__asm__ volatile(
+			"movabsq $0x7fffffffffffffff, %%rax\n\t"
+			"addq $1, %%rax\n\t"
+			"stc\n\t"
+			"adcxq %[s], %[d]\n\t"
+			"pushfq\n\tpopq %[f]"
+			: [d] "+&r"(d), [f] "=&r"(f)
+			: [s] "r"(s) : "rax", "cc", "memory");
+		check("adcxq extended registers", d == 0 &&
+		      (f & 1) && (f & (1ULL << 11)));
+	}
+	/* ADCX consumes CF but must leave OF available for the following ADOX. */
+	{
+		uint64_t d = 5, s = 0, tmp, f;
+		__asm__ volatile(
+			"movabsq $0x7fffffffffffffff, %[tmp]\n\t"
+			"addq $1, %[tmp]\n\t"
+			"stc\n\t"
+			"adcxq %[s], %[d]\n\t"
+			"adoxq %[s], %[d]\n\t"
+			"pushfq\n\tpopq %[f]"
+			: [d] "+&r"(d), [tmp] "=&r"(tmp), [f] "=&r"(f)
+			: [s] "r"(s) : "cc", "memory");
+		check("adcxq then adoxq independent carry chains",
+		      d == 7 && !(f & 1) && !(f & (1ULL << 11)));
+	}
 	/* GFNI: 0x53 * 0xCA = 0x01 in the AES field */
 	{
 		__m256i a = _mm256_set1_epi8(0x53), b = _mm256_set1_epi8((char)0xCA), r = _mm256_gf2p8mul_epi8(a, b);
