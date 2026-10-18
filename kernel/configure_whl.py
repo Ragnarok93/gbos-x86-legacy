@@ -142,7 +142,7 @@ def main():
         print('not resolved as requested:', missed or 'none')
         gmiss = sorted(k for k, v in GENERIC.items() if resolved.get(k, 'n') != v)
         print('generic symbols not resolved (dependency unmet or absent in this tree):', gmiss or 'none')
-        sys.exit(1 if bad else 0)
+        sys.exit(1 if bad or missed else 0)
     args = [a for a in sys.argv if a != '--generic']
     values = parse(open(args[1]).read())
     values.update(OVERRIDES)
