@@ -154,8 +154,8 @@ static bool classify(struct insn *insn, struct op *o)
 			if (pp == 1 && w && (opc == 0xb4 || opc == 0xb5)) {
 				o->kind = opc == 0xb4 ? K_IFMA_L : K_IFMA_H; return true;
 			}
-			/* VAES has both VEX.128 and VEX.256 encodings. */
-			if (pp == 1 && opc >= 0xdc && opc <= 0xdf) {
+			/* VAES has a VEX.256 form; VEX.L=1 is required. */
+			if (pp == 1 && l && opc >= 0xdc && opc <= 0xdf) {
 				o->kind = K_VAES; o->aes_op = opc - 0xdc; return true;
 			}
 			return false;
