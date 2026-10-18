@@ -17,21 +17,36 @@ U=$ROOT/usb
 P=$ROOT/lapis/parts
 NAME=gbOS86-$(date +%Y%m%d)
 
-# This locally generated binary has its SHA-NI SHA-256 entry redirected to the
-# scalar implementation by tools/patch_init_sha.py. It is intentionally not
-# tracked because it is derived from Google's proprietary system image.
+# The init SHA-NI path is a boot-time hot spot on Haswell. Generate a
+# hash-matched scalar-routed init from the exact system_a image when needed.
+# The extracted and patched files are local-only because they derive from
+# Google's proprietary system image.
 PATCHED_INIT=$ROOT/lapis/patched/init
 PATCHED_INIT_SHA=$PATCHED_INIT.orig.sha256
-[ -s "$PATCHED_INIT" ] && [ -s "$PATCHED_INIT_SHA" ] || {
-  echo "missing patched init or source-hash manifest ($PATCHED_INIT and $PATCHED_INIT_SHA)." >&2
-  echo "Regenerate both with: python3 tools/patch_init_sha.py <matching stock /system/bin/init> $PATCHED_INIT" >&2
-  exit 1
-}
+if [ ! -s "$PATCHED_INIT" ] || [ ! -s "$PATCHED_INIT_SHA" ]; then
+  [ -s "$P/system_a.img" ] || {
+    echo "missing $P/system_a.img; fetch/extract the Google recovery partitions first" >&2
+    exit 1
+  }
+  INIT_EXTRACT=$ROOT/lapis/probe/init-sha-overlay
+  rm -rf "$INIT_EXTRACT"
+  mkdir -p "$INIT_EXTRACT" "$(dirname "$PATCHED_INIT")"
+  docker run --rm --platform linux/amd64 \
+    -v "$P":/images:ro -v "$INIT_EXTRACT":/out alpine:latest sh -c '
+      set -eu
+      apk add -q erofs-utils >/dev/null
+      fsck.erofs --extract=/out --path=/system/bin/init /images/system_a.img
+      stock=$(find /out -type f -name init -print -quit)
+      [ -n "$stock" ] || { echo "fsck.erofs did not extract /system/bin/init" >&2; exit 1; }
+      cp "$stock" /out/stock-init
+    '
+  python3 "$ROOT/tools/patch_init_sha.py" "$INIT_EXTRACT/stock-init" "$PATCHED_INIT"
+fi
 INIT_HASH=$(tr -d '\r\n' < "$PATCHED_INIT_SHA")
 case "$INIT_HASH" in
   *[!0-9a-f]*|'') echo "invalid init source-hash manifest: $PATCHED_INIT_SHA" >&2; exit 1 ;;
 esac
-[ "${#INIT_HASH}" -eq 64 ] && [ "$(wc -c < "$PATCHED_INIT_SHA")" -le 66 ] || {
+[ "${#INIT_HASH}" -eq 64 ] || {
   echo "init source-hash manifest must contain exactly 64 hex digits" >&2; exit 1;
 }
 
