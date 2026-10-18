@@ -90,9 +90,10 @@ for d in firmware patched audio installer kmod modules; do cp -R "$U/$d" "$G/$d"
 # Kernel build/source symlinks are compile-time only and cannot be represented in the FAT image.
 find "$G/modules" -type l \( -name build -o -name source \) -delete
 
-# Build a tiny ext4 sidecar for performance-only library overlays. Unlike FAT, ext4 can carry
-# Android security.selinux xattrs, so bind-mounted libraries keep their expected labels after init
-# switches SELinux to enforcing. Never source these shared libraries directly from vfat.
+# Build an ext4 sidecar for the hash-matched scalar-routed init and performance-only library
+# overlays. Unlike FAT, ext4 can carry Android security.selinux xattrs, so bind-mounted executables
+# and libraries keep their expected labels after init switches SELinux to enforcing. Never execute
+# or source these replacements directly from vfat.
 PATCHROOT=$STAGE/patched-libs-root
 mkdir -p "$PATCHROOT"
 for f in system.libz.so vendor.libz.so system.libcrypto.so vendor.libcrypto.so; do
