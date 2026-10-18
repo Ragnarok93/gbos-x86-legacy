@@ -15,6 +15,11 @@ GBOS_FWPATH=/sys/module/firmware_class/parameters/path
 
 gbos_modules_mount() {
   KVER=$(uname -r)
+  # stage0 mounts this tree before loading platform drivers; don't stack the same bind mount here.
+  if grep -Fq " $G/modules/lib/modules /lib/modules " /proc/mounts; then
+    log "hwdetect: module tree $KVER already mounted"
+    return 0
+  fi
   if [ -f $G/modules/lib/modules/$KVER/modules.dep ]; then
     mount --bind $G/modules/lib/modules /lib/modules 2>/dev/null \
       && log "hwdetect: module tree $KVER ($(find /lib/modules/$KVER -name '*.ko' | wc -l) modules) from gbos/modules" \
