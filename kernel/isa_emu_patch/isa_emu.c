@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Userspace emulation of x86 instructions that Skylake-family CPUs lack
- * (GFNI, AVX-VNNI(-INT8), SHA-NI, 256-bit VAES/VPCLMULQDQ, AVX-IFMA).
+ * (GFNI, AVX-VNNI(-INT8), SHA-NI, 256-bit VAES, 128/256-bit VPCLMULQDQ, AVX-IFMA).
  * Entered from the #UD handler for user-mode faults. AVX-512 and AMX are not handled.
  */
 #include <linux/sched.h>
