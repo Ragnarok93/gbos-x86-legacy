@@ -1,4 +1,5 @@
-# Sourced from gbos.cfg after /new/system and /new/vendor are mounted, before the first dmctl.
+# Sourced from gbos.cfg before mounts; the chroot wrapper runs this at the first dmctl, after
+# /new/system and /new/vendor are mounted but before dmctl loads libcrypto.
 # dmctl loads libcrypto in a fresh process; the unpatched SHA-NI path is very expensive on CPUs
 # without SHA-NI. Bind only replacements made for the exact original bytes; hook.sh repeats this
 # check later as a fail-safe and handles the Conscrypt APEX after apexd activation.
