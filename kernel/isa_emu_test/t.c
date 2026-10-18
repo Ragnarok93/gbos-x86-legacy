@@ -246,6 +246,19 @@ void _start_c(void)
 		}
 		check("vaesenc ymm", ok[0]); check("vaesenclast ymm", ok[1]); check("vaesdec ymm", ok[2]); check("vaesdeclast ymm", ok[3]);
 	}
+	/* VEX.128 VAES encodings must trap and be emulated too (not just YMM forms). */
+	{
+		__m128i s = _mm_set_epi32(0x10203040, 0x50607080, 0x90a0b0c0, 0xd0e0f000);
+		__m128i k = _mm_set_epi32(0xdeadbeef, 0x01234567, 0x89abcdef, 0xfedcba98);
+		__m128i v[4] = { _mm_aesenc_epi128(s, k), _mm_aesenclast_epi128(s, k),
+			_mm_aesdec_epi128(s, k), _mm_aesdeclast_epi128(s, k) };
+		__m128i n[4] = { _mm_aesenc_si128(s, k), _mm_aesenclast_si128(s, k),
+			_mm_aesdec_si128(s, k), _mm_aesdeclast_si128(s, k) };
+		check("vaesenc xmm", eq(&v[0], &n[0], 16));
+		check("vaesenclast xmm", eq(&v[1], &n[1], 16));
+		check("vaesdec xmm", eq(&v[2], &n[2], 16));
+		check("vaesdeclast xmm", eq(&v[3], &n[3], 16));
+	}
 	/* VPCLMULQDQ 256 vs native pclmulqdq per lane, all 4 imm selections */
 	{
 		uint8_t xa[32], xb[32];
@@ -256,6 +269,17 @@ void _start_c(void)
 	for (int l = 0; l < 2; l++) { __m128i e = _mm_clmulepi64_si128(_mm_loadu_si128((void *)(xa + 16*l)), _mm_loadu_si128((void *)(xb + 16*l)), IMM); ok &= eq(o + 16*l, &e, 16); } }
 		CL(0x00) CL(0x01) CL(0x10) CL(0x11)
 		check("vpclmulqdq ymm (4 imms)", ok);
+	}
+	/* VEX.128 VPCLMULQDQ forms (all imm selections) must also be emulated. */
+	{
+		__m128i a = _mm_set_epi64x(0x0123456789abcdefULL, 0xfedcba9876543210ULL);
+		__m128i b = _mm_set_epi64x(0x0f1e2d3c4b5a6978ULL, 0x8877665544332211ULL);
+		int ok = 1;
+#define CL128(IMM) { __m128i r = _mm_clmulepi64_epi128(a, b, IMM); \
+		__m128i e = _mm_clmulepi64_si128(a, b, IMM); ok &= eq(&r, &e, 16); }
+		CL128(0x00) CL128(0x01) CL128(0x10) CL128(0x11)
+#undef CL128
+		check("vpclmulqdq xmm (4 imms)", ok);
 	}
 	/* SHA-256 "abc" */
 	{
