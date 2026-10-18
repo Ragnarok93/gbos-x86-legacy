@@ -103,6 +103,23 @@ SHELL_AT=none; LOAD_I915=1; LOAD_WIFI=0; EXTRA_SLEEP=0; MODE=boot
 case "$MODE" in install) ;; *) MODE=boot;; esac
 [ $FROM = nvme ] && MODE=boot
 
+# Mount the matching replacement-kernel modules before the first platform-driver modprobe.
+# Otherwise /lib/modules may still contain the recovery/initramfs i915.ko, which can fail with
+# unresolved symbols even though the correct i915.ko is packaged on the GBOS volume.
+if [ "$HWDETECT" != 0 ] && [ -f "$G/hwdetect.sh" ]; then
+  KVER=$(uname -r)
+  if [ -f "$G/modules/lib/modules/$KVER/modules.dep" ]; then
+    if mount --bind "$G/modules/lib/modules" /lib/modules; then
+      log "module tree $KVER mounted before platform-driver loading"
+    else
+      log "WARNING: failed to mount matching module tree; using initramfs modules"
+    fi
+  else
+    log "WARNING: matching module tree $KVER missing; using initramfs modules"
+  fi
+  [ -d "$G/firmware" ] && echo -n "$G/firmware" > /sys/module/firmware_class/parameters/path
+fi
+
 # Hardware inventory
 {
   echo "== cmdline"; cat /proc/cmdline
@@ -121,7 +138,7 @@ log "hardware inventory written (hw.txt)"
 [ "$SHELL_AT" = early ] && shell "SHELL_AT=early"
 
 if [ "$LOAD_I915" = 1 ]; then
-  log "modprobe i915 (UHD 620). If the screen freezes here, set LOAD_I915=0 in gbos.cfg"
+  log "modprobe i915 (Intel graphics; LOAD_I915=0 in gbos.cfg disables it)"
   modprobe i915 && log "i915 loaded" || log "i915 load FAILED rc=$?"
   sleep 2; mdev -s
 fi
