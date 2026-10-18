@@ -262,9 +262,10 @@ void _start_c(void)
 		__m128i a = _mm_set_epi64x(0x0123456789abcdefULL, 0xfedcba9876543210ULL);
 		__m128i b = _mm_set_epi64x(0x0f1e2d3c4b5a6978ULL, 0x8877665544332211ULL);
 		int ok = 1;
-#define CL128(IMM) { __m128i r; \
+#define CL128(IMM) { __m128i r, e = a; \
 		__asm__ volatile("vpclmulqdq $" #IMM ", %2, %1, %0" : "=x"(r) : "x"(a), "x"(b)); \
-		__m128i e = _mm_clmulepi64_si128(a, b, IMM); ok &= eq(&r, &e, 16); }
+		__asm__ volatile("pclmulqdq $" #IMM ", %1, %0" : "+x"(e) : "x"(b)); \
+		ok &= eq(&r, &e, 16); }
 		CL128(0x00) CL128(0x01) CL128(0x10) CL128(0x11)
 #undef CL128
 		check("vpclmulqdq xmm (4 imms)", ok);
